@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>운동 기록 - Workout Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 헤더 -->
+    <header id="workoutHeader" class="workout-header" style="display:none;">
+      <div class="wh-left">
+        <span class="wh-timer" id="workoutTimer">00:00</span>
+      </div>
+      <div class="wh-center" id="workoutTags"></div>
+      <div class="wh-right">
+        <button class="wh-btn" onclick="showScreen('home')">완료</button>
+      </div>
+    </header>
+
+    <!-- 휴식 타이머 -->
+    <div id="restTimerBar" class="rest-timer-bar"></div>
+
+    <!-- 스크린 컨테이너 -->
+    <main class="screens-container">
+      <!-- 홈 화면 -->
+      <div id="screen-home" class="screen active">
+        <section class="home-section">
+          <div id="weekSummary" class="week-summary"></div>
+          <div class="streak-section">
+            <div class="streak-label">연속 운동</div>
+            <div class="streak-badge"><span id="streakNum">0</span>일</div>
+          </div>
+        </section>
+
+        <section class="home-section">
+          <div class="section-title">최근 개인 기록</div>
+          <div id="recentPRs" class="recent-prs"></div>
+        </section>
+
+        <section class="home-section">
+          <div id="calendar" class="calendar"></div>
+        </section>
+      </div>
+
+      <!-- 운동 화면 -->
+      <div id="screen-workout" class="screen">
+        <div id="workoutContent" class="workout-content"></div>
+      </div>
+
+      <!-- 통계 화면 -->
+      <div id="screen-stats" class="screen">
+        <section class="stats-section">
+          <div id="periodStats" class="period-stats"></div>
+        </section>
+
+        <section class="stats-section">
+          <div class="section-title">운동 기록</div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+
+        <section class="stats-section">
+          <div id="inbodySection" class="inbody-section"></div>
+        </section>
+      </div>
+    </main>
+
+    <!-- 탭바 -->
+    <nav class="tab-bar">
+      <button class="tab-item on" onclick="showScreen('home')">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">홈</span>
+      </button>
+      <button class="tab-item" onclick="showScreen('workout')">
+        <span class="tab-icon">💪</span>
+        <span class="tab-label">운동</span>
+      </button>
+      <button class="tab-item" onclick="showScreen('stats')">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">통계</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- JS 파일들 -->
+  <script src="js/storage.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/workout.js"></script>
+  <script src="js/stats.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
