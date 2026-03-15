@@ -269,3 +269,90 @@ function getDayVolume(dateStr) {
   }
   return vol;
 }
+
+/**
+ * 이번 주 총 볼륨 (월요일~오늘)
+ */
+function getThisWeekVolume() {
+  var weekStart = getWeekStartDate();
+  var todayStr = today();
+  var sessions = getSessions().filter(function(s) {
+    return s.date >= weekStart && s.date <= todayStr;
+  });
+  var vol = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    vol += sessions[i].totalVolume || 0;
+  }
+  return vol;
+}
+
+/**
+ * 지난주 같은 시점까지의 볼륨 (지난 월요일~지난 오늘 요일)
+ * 예: 오늘이 수요일이면 지난주 월~수 볼륨 반환
+ */
+function getLastWeekVolumeAtSamePoint() {
+  var now = new Date();
+  var dayOfWeek = now.getDay(); // 0=일, 1=월, ...
+  var daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // 월=0, 화=1, ...
+
+  // 지난주 월요일
+  var lastWeekMon = new Date(now);
+  lastWeekMon.setDate(now.getDate() - 7 - daysSinceMonday);
+  var lastWeekStart = getLocalYMD(lastWeekMon);
+
+  // 지난주 같은 요일
+  var lastWeekSameDay = new Date(now);
+  lastWeekSameDay.setDate(now.getDate() - 7);
+  var lastWeekEnd = getLocalYMD(lastWeekSameDay);
+
+  var sessions = getSessions().filter(function(s) {
+    return s.date >= lastWeekStart && s.date <= lastWeekEnd;
+  });
+  var vol = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    vol += sessions[i].totalVolume || 0;
+  }
+  return vol;
+}
+
+/**
+ * 지난주 전체 볼륨 (월~일)
+ */
+function getLastWeekTotalVolume() {
+  var now = new Date();
+  var dayOfWeek = now.getDay();
+  var daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+  var lastWeekMon = new Date(now);
+  lastWeekMon.setDate(now.getDate() - 7 - daysSinceMonday);
+  var lastWeekStart = getLocalYMD(lastWeekMon);
+
+  var lastWeekSun = new Date(lastWeekMon);
+  lastWeekSun.setDate(lastWeekMon.getDate() + 6);
+  var lastWeekEnd = getLocalYMD(lastWeekSun);
+
+  var sessions = getSessions().filter(function(s) {
+    return s.date >= lastWeekStart && s.date <= lastWeekEnd;
+  });
+  var vol = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    vol += sessions[i].totalVolume || 0;
+  }
+  return vol;
+}
+
+/**
+ * 특정 날짜에 PR이 있었는지 확인
+ */
+function hasPROnDate(dateStr) {
+  var sessions = getSessionsByDate(dateStr);
+  for (var i = 0; i < sessions.length; i++) {
+    var exs = sessions[i].exercises;
+    for (var j = 0; j < exs.length; j++) {
+      for (var k = 0; k < exs[j].sets.length; k++) {
+        if (exs[j].sets[k].isPR) return true;
+      }
+    }
+  }
+  return false;
+}

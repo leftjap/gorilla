@@ -280,6 +280,10 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `estimateCalories(session)` — MET 기반 칼로리 추정
 - `getLastSession()` — 가장 최근 세션 반환 (오늘 포함)
 - `getDayVolume(dateStr)` — 특정 날짜의 총 볼륨 반환
+- `getThisWeekVolume()` — 이번 주 총 볼륨 (월~오늘)
+- `getLastWeekVolumeAtSamePoint()` — 지난주 같은 시점까지의 볼륨 (월~같은 요일)
+- `getLastWeekTotalVolume()` — 지난주 전체 볼륨 (월~일)
+- `hasPROnDate(dateStr)` — 특정 날짜에 PR이 있었는지 확인
 
 ### js/ui.js
 **역할:** 화면 전환, 대시보드 렌더링, 캘린더, 주간 캘린더 선택.
@@ -290,10 +294,10 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 
 **홈 화면:**
 - `renderHome()` — 주간 캘린더 + 요약 메시지 + 직전 운동 카드 렌더
-- `renderWeekCal()` — 요일(월~일) 위, 날짜 아래, 볼륨 표시, 선택 상태 렌더
+- `renderWeekCal()` — 다크 배경, 요일(월~일) 위, 날짜 아래, 볼륨(그레이톤), PR 있는 날 붉은색 표시, 선택 상태 렌더
 - `selectWeekDate(dateStr)` — 주간 캘린더 날짜 선택 + 주간 캘린더/직전 운동 카드 재렌더
-- `renderSummaryMsg()` — 직전 운동 언급 + 동기부여 메시지 렌더
-- `renderLastWorkoutCard()` — 선택된 날짜(또는 가장 최근) 운동 카드 렌더 (볼륨, 시간, 칼로리, 종목, PR 표시)
+- `renderSummaryMsg()` — 이번 주 총 볼륨 + 지난주 같은 시점 비교 메시지 렌더 (월요일 특별 처리)
+- `renderLastWorkoutCard()` — 선택된 날짜(또는 가장 최근) 운동 카드 렌더 (라운드 박스: 볼륨/칼로리/시간 + 개별 종목 칩)
 - `renderMonthCal()` — 월간 캘린더 (부위 컬러 도트)
 
 ### js/workout.js
@@ -500,11 +504,13 @@ showScreen('home')
 | 용도 | 변수/값 | 색상 |
 |---|---|---|
 | 배경 | `--bg-gray` | `#F5F5F5` |
+| 다크 배경 (헤더/주간캘린더) | `--dark` | `#2D2D2D` |
 | 카드 배경 | `--white` | `#FFFFFF` |
 | 카드 그림자 | — | `0 1px 3px rgba(0,0,0,0.08)` |
 | 메인 텍스트 | `--dark` | `#2D2D2D` |
 | 서브 텍스트 | `--gray` | `#6C6C6C` |
 | 포인트 (유일한 컬러) | `--blue` | `#4A90D9` |
+| PR 강조 | — | `#e87461` (붉은색) |
 | 비활성 | `--icon-inactive` | `#AAAAAA` |
 | 보더 | `--border-gray` | `#E0E0E0` |
 | 라이트 그레이 | `--light-gray` | `#F0F0F0` |

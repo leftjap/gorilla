@@ -40,46 +40,45 @@ function renderSummaryMsg() {
   var el = document.getElementById('summaryMsg');
   if (!el) return;
 
-  var lastSession = getLastSession();
-  var streak = getStreak();
+  var thisWeekVol = getThisWeekVolume();
+  var lastWeekVol = getLastWeekVolumeAtSamePoint();
+  var lastWeekTotal = getLastWeekTotalVolume();
+
+  var now = new Date();
+  var dayOfWeek = now.getDay();
+  var isWeekStart = (dayOfWeek === 1); // 월요일
+
   var mainText = '';
   var subText = '';
 
-  if (!lastSession) {
-    mainText = '첫 운동을 시작해보세요!';
-    subText = '운동 기록이 쌓이면 여기에 요약이 표시됩니다';
+  if (isWeekStart && thisWeekVol === 0) {
+    // 월요일이고 이번주 기록이 없으면 지난주 보여주기
+    if (lastWeekTotal > 0) {
+      mainText = '지난주 총 <strong>' + formatNum(lastWeekTotal) + 'kg</strong> 들었어요';
+    } else {
+      mainText = '이번 주 첫 운동을 시작해보세요!';
+    }
+    subText = '새로운 한 주가 시작됐어요 💪';
+  } else if (thisWeekVol > 0) {
+    mainText = '이번 주 총 <strong>' + formatNum(thisWeekVol) + 'kg</strong> 들었어요';
+
+    // 지난주 같은 시점과 비교
+    var diff = thisWeekVol - lastWeekVol;
+    if (lastWeekVol === 0) {
+      subText = '이번 주도 꾸준히 하고 있어요!';
+    } else if (diff > 0) {
+      subText = '지난주보다 <strong>' + formatNum(diff) + 'kg</strong> 더 들고 있어요';
+    } else if (diff < 0) {
+      subText = '지난주보다 ' + formatNum(Math.abs(diff)) + 'kg 덜 들고 있어요';
+    } else {
+      subText = '지난주와 같은 페이스예요!';
+    }
   } else {
-    // 직전 운동 언급
-    var lastDate = new Date(lastSession.date + 'T00:00:00');
-    var todayDate = new Date(today() + 'T00:00:00');
-    var diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
-    var weekday = ['일', '월', '화', '수', '목', '금', '토'][lastDate.getDay()];
-
-    var tagNames = [];
-    for (var i = 0; i < lastSession.tags.length; i++) {
-      var part = getBodyPart(lastSession.tags[i]);
-      if (part) tagNames.push(part.name);
-    }
-    var partText = tagNames.length > 0 ? tagNames.slice(0, 2).join('+') : '운동';
-    var volText = '<strong>' + formatNum(lastSession.totalVolume || 0) + 'kg</strong>';
-
-    if (diffDays === 0) {
-      mainText = '오늘 ' + partText + ' ' + volText + ' 완료!';
-    } else if (diffDays === 1) {
-      mainText = '어제 ' + partText + ' ' + volText + ' 들었어요';
+    mainText = '이번 주 첫 운동을 시작해보세요!';
+    if (lastWeekTotal > 0) {
+      subText = '지난주에는 ' + formatNum(lastWeekTotal) + 'kg 들었어요';
     } else {
-      mainText = weekday + '요일에 ' + partText + ' ' + volText + ' 들었어요';
-    }
-
-    // 동기부여 문구
-    if (streak >= 3) {
-      subText = streak + '일 연속 운동 중! 🔥';
-    } else if (diffDays === 0) {
-      subText = '오늘도 수고했어요 💪';
-    } else if (diffDays <= 2) {
-      subText = '꾸준히 하고 있어요, 좋습니다!';
-    } else {
-      subText = diffDays + '일 쉬었어요. 오늘 다시 시작해볼까요?';
+      subText = '운동 기록이 쌓이면 여기에 요약이 표시됩니다';
     }
   }
 
@@ -93,16 +92,14 @@ function renderLastWorkoutCard() {
   var el = document.getElementById('lastWorkoutCard');
   if (!el) return;
 
-  // 선택된 날짜의 세션 표시 (기본: 오늘)
+  // 선택된 날짜의 세션 표시
   var sessions = getSessionsByDate(_selectedWeekDate);
 
-  // 선택된 날짜에 세션이 없으면 가장 최근 세션 표시
-  var showingLatest = false;
+  // 선택된 날짜에 세션이 없고 오늘이면 가장 최근 세션 표시
   if (sessions.length === 0 && _selectedWeekDate === today()) {
     var lastSession = getLastSession();
     if (lastSession) {
       sessions = [lastSession];
-      showingLatest = true;
     }
   }
 
@@ -127,9 +124,8 @@ function renderLastWorkoutCard() {
       tagsHtml += '<span class="lw-tag">' + name + '</span>';
     }
 
-    // 종목 리스트 + PR 표시
-    var exHtml = '';
-    var prCount = 0;
+    // 종목 칩
+    var exChipsHtml = '';
     for (var i = 0; i < s.exercises.length; i++) {
       var ex = s.exercises[i];
       var exInfo = getExercise(ex.exerciseId);
@@ -139,12 +135,15 @@ function renderLastWorkoutCard() {
       var hasPR = false;
       for (var j = 0; j < ex.sets.length; j++) {
         if (ex.sets[j].done) doneSets++;
-        if (ex.sets[j].isPR) { hasPR = true; prCount++; }
+        if (ex.sets[j].isPR) hasPR = true;
       }
 
-      exHtml += exInfo.name + ' ' + doneSets + '세트';
-      if (hasPR) exHtml += '<span class="lw-pr-badge">PR</span>';
-      if (i < s.exercises.length - 1) exHtml += ' · ';
+      exChipsHtml +=
+        '<div class="lw-ex-chip">' +
+          '<span>' + exInfo.name + '</span>' +
+          '<span class="lw-ex-sets">' + doneSets + '세트</span>' +
+          (hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
+        '</div>';
     }
 
     html +=
@@ -159,20 +158,21 @@ function renderLastWorkoutCard() {
             '<span class="lw-stat-label">볼륨</span>' +
           '</div>' +
           '<div class="lw-stat">' +
-            '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
-            '<span class="lw-stat-label">시간</span>' +
-          '</div>' +
-          '<div class="lw-stat">' +
             '<span class="lw-stat-num">' + formatNum(s.totalCalories || 0) + '<small>kcal</small></span>' +
             '<span class="lw-stat-label">칼로리</span>' +
           '</div>' +
+          '<div class="lw-stat">' +
+            '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
+            '<span class="lw-stat-label">시간</span>' +
+          '</div>' +
         '</div>' +
-        '<div class="lw-exercises">' + exHtml + '</div>' +
+        '<div class="lw-exercises">' + exChipsHtml + '</div>' +
       '</div>';
   }
 
   el.innerHTML = html;
 }
+
 // ══ 주간 캘린더 ══
 function renderWeekCal() {
   var el = document.getElementById('weekCal');
@@ -188,25 +188,27 @@ function renderWeekCal() {
     d.setDate(d.getDate() + i);
     var dateStr = getLocalYMD(d);
     var dayNum = d.getDate();
-    var dowIdx = i; // 월=0 ~ 일=6 (getWeekStartDate는 월요일 시작)
 
     var isToday = dateStr === todayStr;
     var isSelected = dateStr === _selectedWeekDate;
     var vol = getDayVolume(dateStr);
+    var hasPR = hasPROnDate(dateStr);
 
     var dayClass = 'week-day';
     if (isToday) dayClass += ' today';
     if (isSelected) dayClass += ' selected';
 
-    var volHtml = vol > 0
-      ? '<div class="week-day-vol">' + formatNum(vol) + '</div>'
-      : '<div class="week-day-vol empty">-</div>';
+    var volClass = 'week-day-vol';
+    if (vol === 0) volClass += ' empty';
+    else if (hasPR) volClass += ' has-pr';
+
+    var volText = vol > 0 ? formatNum(vol) : '';
 
     html +=
       '<div class="' + dayClass + '" onclick="selectWeekDate(\'' + dateStr + '\')">' +
-        '<div class="week-day-dow">' + dows[dowIdx] + '</div>' +
+        '<div class="week-day-dow">' + dows[i] + '</div>' +
         '<div class="week-day-num">' + dayNum + '</div>' +
-        volHtml +
+        '<div class="' + volClass + '">' + volText + '</div>' +
       '</div>';
   }
   html += '</div>';
