@@ -1498,12 +1498,10 @@ input {
 /* 기본 상태: 떠오르지 않음 (today 포함) */
 /* 선택된 날만 떠오름 */
 .week-day.selected {
-  transform: translateY(-4px);
 }
 
 /* 오늘+선택: 더 강하게 */
 .week-day.today.selected {
-  transform: translateY(-6px);
 }
 
 .week-day-dow {
@@ -1523,12 +1521,10 @@ input {
 
 /* 선택된 날: 10시 방향으로 떠오름 */
 .week-day.selected .week-day-body {
-  transform: translate(-3px, -4px);
 }
 
 /* 오늘+선택: 더 강하게 */
 .week-day.today.selected .week-day-body {
-  transform: translate(-4px, -6px);
 }
 
 .week-day-num {
@@ -1549,6 +1545,7 @@ input {
   background: var(--white);
   font-weight: 500;
   box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
 }
 
 /* 오늘+선택: 흰색 + 강한 그림자 */
@@ -1560,6 +1557,7 @@ input {
   height: 48px;
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 3px 8px rgba(0,0,0,0.12);
+  transform: translateY(-6px);
 }
 
 /* 볼륨 숫자 — 날짜에 바짝 밀착 */
