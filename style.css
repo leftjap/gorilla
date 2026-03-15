@@ -1196,31 +1196,9 @@ input {
 
 /* ── 요약 메시지 ── */
 .summary-msg {
-  position: relative;
   padding: calc(max(20px, env(safe-area-inset-top)) + 12px) 20px 20px 20px;
   margin: 0;
   background: transparent;
-}
-
-.summary-cal-btn {
-  position: absolute;
-  top: calc(max(20px, env(safe-area-inset-top)) + 12px);
-  right: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--gray);
-  z-index: 5;
-}
-
-.summary-cal-btn:active {
-  background: var(--light-gray);
 }
 
 .summary-msg-main {
@@ -1229,7 +1207,6 @@ input {
   color: var(--dark);
   margin-bottom: 4px;
   line-height: 1.3;
-  padding-right: 44px;
 }
 
 .summary-msg-main strong {
@@ -1484,9 +1461,13 @@ input {
   align-items: center;
   gap: 0;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 30px 0 4px 0;
   border-radius: 10px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.week-day:last-child {
+  padding-top: 0;
 }
 
 .week-day:active {
@@ -1549,6 +1530,25 @@ input {
 
 .week-day.today.selected .week-day-num {
   box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 3px 8px rgba(0,0,0,0.12);
+}
+
+/* 캘린더 아이콘 (일요일 열 상단) */
+.week-cal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--gray);
+  padding: 0;
+  margin-bottom: 2px;
+}
+
+.week-cal-icon:active {
+  color: var(--dark);
 }
 
 /* 볼륨 숫자 — 날짜에 바짝 밀착 */
