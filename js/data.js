@@ -249,3 +249,23 @@ function getLastExerciseSets(exerciseId) {
   }
   return null;
 }
+
+/**
+ * 가장 최근 세션 반환 (오늘 포함)
+ */
+function getLastSession() {
+  var sessions = getSessions();
+  return sessions.length > 0 ? sessions[0] : null;
+}
+
+/**
+ * 특정 날짜의 총 볼륨 반환
+ */
+function getDayVolume(dateStr) {
+  var sessions = getSessionsByDate(dateStr);
+  var vol = 0;
+  for (var i = 0; i < sessions.length; i++) {
+    vol += sessions[i].totalVolume || 0;
+  }
+  return vol;
+}

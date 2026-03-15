@@ -276,25 +276,25 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `getMonthSummary(ym)` — 월간 요약
 - `getStreak()` — 연속 운동 일수
 - `getSessionsByMonth(ym)` — 월별 세션 목록
+- `getSessionsByDate(dateStr)` — 특정 날짜 세션 목록
 - `estimateCalories(session)` — MET 기반 칼로리 추정
+- `getLastSession()` — 가장 최근 세션 반환 (오늘 포함)
+- `getDayVolume(dateStr)` — 특정 날짜의 총 볼륨 반환
 
 ### js/ui.js
-**역할:** 화면 전환, 대시보드 렌더링, 캘린더.
+**역할:** 화면 전환, 대시보드 렌더링, 캘린더, 주간 캘린더 선택.
 
 **화면 전환:**
 - `showScreen(screenId)` — 화면 전환 ('home'|'workout'|'stats')
 - `activeScreen` — 현재 화면 ID
 
-**대시보드:**
-- `renderHome()` — 홈 화면 전체 렌더
-- `renderWeekSummary()` — 이번 주 요약 카드
-- `renderStreak()` — 스트릭 바
-- `renderRecentPRs()` — 최근 PR 카드
-- `renderCalendar(ym)` — 월간 캘린더 (부위 컬러 도트)
-- `renderDayDetail(dateStr)` — 날짜 탭 시 세션 요약
-
-**히스토리:**
-- `renderHistory()` — 세션 히스토리 리스트
+**홈 화면:**
+- `renderHome()` — 주간 캘린더 + 요약 메시지 + 직전 운동 카드 렌더
+- `renderWeekCal()` — 요일(월~일) 위, 날짜 아래, 볼륨 표시, 선택 상태 렌더
+- `selectWeekDate(dateStr)` — 주간 캘린더 날짜 선택 + 주간 캘린더/직전 운동 카드 재렌더
+- `renderSummaryMsg()` — 직전 운동 언급 + 동기부여 메시지 렌더
+- `renderLastWorkoutCard()` — 선택된 날짜(또는 가장 최근) 운동 카드 렌더 (볼륨, 시간, 칼로리, 종목, PR 표시)
+- `renderMonthCal()` — 월간 캘린더 (부위 컬러 도트)
 
 ### js/workout.js
 **역할:** 운동 진행 화면의 핵심 로직.
@@ -357,6 +357,9 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 | 변수명 | 파일 | 역할 |
 |---|---|---|
 | activeScreen | ui.js | 현재 화면 ID |
+| _currentYM | ui.js | 현재 선택된 월 (YYYY-MM) |
+| _bottomSheetOpen | ui.js | 바텀시트 열림 상태 |
+| _selectedWeekDate | ui.js | 주간 캘린더에서 선택된 날짜 (기본: 오늘) |
 | _currentSession | workout.js | 진행 중인 세션 객체 |
 | _selectedParts | workout.js | 선택된 부위 ID 배열 |
 | _restTimer | workout.js | 휴식 타이머 상태 |

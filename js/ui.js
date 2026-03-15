@@ -2,6 +2,7 @@
 
 var _currentYM = getYM(); // 현재 선택된 월
 var _bottomSheetOpen = false;
+var _selectedWeekDate = today(); // 주간 캘린더에서 선택된 날짜 (기본: 오늘)
 
 // ══ 화면 전환 ══
 function showScreen(screenId) {
@@ -29,10 +30,9 @@ function startWorkoutFlow() {
 
 // ══ 홈 화면 ══
 function renderHome() {
-  renderSummaryMsg();
-  renderHeroCard();
   renderWeekCal();
-  renderMonthCal();
+  renderSummaryMsg();
+  renderLastWorkoutCard();
 }
 
 // ══ 요약 메시지 ══
@@ -40,116 +40,147 @@ function renderSummaryMsg() {
   var el = document.getElementById('summaryMsg');
   if (!el) return;
 
-  var summary = getMonthSummary(_currentYM);
-  var vol = summary.volume;
-  var [y, m] = _currentYM.split('-').map(Number);
+  var lastSession = getLastSession();
+  var streak = getStreak();
+  var mainText = '';
+  var subText = '';
 
-  var volumeText = vol > 0 ? '<strong>' + formatNum(vol) + 'kg</strong>' : '0kg';
-  var subText = vol === 0
-    ? '아직 운동 기록이 없습니다'
-    : '계속해서 운동해보세요!';
+  if (!lastSession) {
+    mainText = '첫 운동을 시작해보세요!';
+    subText = '운동 기록이 쌓이면 여기에 요약이 표시됩니다';
+  } else {
+    // 직전 운동 언급
+    var lastDate = new Date(lastSession.date + 'T00:00:00');
+    var todayDate = new Date(today() + 'T00:00:00');
+    var diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+    var weekday = ['일', '월', '화', '수', '목', '금', '토'][lastDate.getDay()];
+
+    var tagNames = [];
+    for (var i = 0; i < lastSession.tags.length; i++) {
+      var part = getBodyPart(lastSession.tags[i]);
+      if (part) tagNames.push(part.name);
+    }
+    var partText = tagNames.length > 0 ? tagNames.slice(0, 2).join('+') : '운동';
+    var volText = '<strong>' + formatNum(lastSession.totalVolume || 0) + 'kg</strong>';
+
+    if (diffDays === 0) {
+      mainText = '오늘 ' + partText + ' ' + volText + ' 완료!';
+    } else if (diffDays === 1) {
+      mainText = '어제 ' + partText + ' ' + volText + ' 들었어요';
+    } else {
+      mainText = weekday + '요일에 ' + partText + ' ' + volText + ' 들었어요';
+    }
+
+    // 동기부여 문구
+    if (streak >= 3) {
+      subText = streak + '일 연속 운동 중! 🔥';
+    } else if (diffDays === 0) {
+      subText = '오늘도 수고했어요 💪';
+    } else if (diffDays <= 2) {
+      subText = '꾸준히 하고 있어요, 좋습니다!';
+    } else {
+      subText = diffDays + '일 쉬었어요. 오늘 다시 시작해볼까요?';
+    }
+  }
 
   el.innerHTML =
-    '<div class="summary-msg-main">' + m + '월에는 ' + volumeText + ' 들었어요</div>' +
+    '<div class="summary-msg-main">' + mainText + '</div>' +
     '<div class="summary-msg-sub">' + subText + '</div>';
 }
 
-// ══ 히어로 카드 ══
-function renderHeroCard() {
-  var el = document.getElementById('heroCard');
+// ══ 직전 운동 카드 ══
+function renderLastWorkoutCard() {
+  var el = document.getElementById('lastWorkoutCard');
   if (!el) return;
 
-  var sessions = getSessionsByMonth(_currentYM);
+  // 선택된 날짜의 세션 표시 (기본: 오늘)
+  var sessions = getSessionsByDate(_selectedWeekDate);
+
+  // 선택된 날짜에 세션이 없으면 가장 최근 세션 표시
+  var showingLatest = false;
+  if (sessions.length === 0 && _selectedWeekDate === today()) {
+    var lastSession = getLastSession();
+    if (lastSession) {
+      sessions = [lastSession];
+      showingLatest = true;
+    }
+  }
+
   if (sessions.length === 0) {
     el.innerHTML =
-      '<div class="hero-empty">' +
-        '<div class="hero-empty-icon">💪</div>' +
-        '<div class="hero-empty-text">첫 운동을 시작해보세요!</div>' +
+      '<div class="lw-empty">' +
+        '<div class="lw-empty-icon">💪</div>' +
+        '<div class="lw-empty-text">운동 기록이 없습니다</div>' +
       '</div>';
     return;
   }
 
-  // 부위별 볼륨 집계
-  var partVolumes = {};
-  for (var i = 0; i < sessions.length; i++) {
-    var tags = sessions[i].tags || [];
-    for (var j = 0; j < tags.length; j++) {
-      var partId = tags[j];
-      partVolumes[partId] = (partVolumes[partId] || 0) + (sessions[i].totalVolumeExWarmup || 0);
+  var html = '';
+  for (var si = 0; si < sessions.length; si++) {
+    var s = sessions[si];
+
+    // 부위 태그
+    var tagsHtml = '';
+    for (var i = 0; i < s.tags.length; i++) {
+      var part = getBodyPart(s.tags[i]);
+      var name = part ? part.name : s.tags[i];
+      tagsHtml += '<span class="lw-tag">' + name + '</span>';
     }
-  }
 
-  // 최다 부위 찾기
-  var maxPart = null, maxVolume = 0;
-  var parts = Object.keys(partVolumes);
-  for (var i = 0; i < parts.length; i++) {
-    if (partVolumes[parts[i]] > maxVolume) {
-      maxVolume = partVolumes[parts[i]];
-      maxPart = parts[i];
-    }
-  }
-
-  var partInfo = getBodyPart(maxPart);
-  var partName = partInfo ? partInfo.name : maxPart;
-
-  // 해당 부위의 상위 종목 2개
-  var topExercises = [];
-  var exVolumes = {};
-  for (var i = 0; i < sessions.length; i++) {
-    for (var j = 0; j < sessions[i].exercises.length; j++) {
-      var ex = sessions[i].exercises[j];
+    // 종목 리스트 + PR 표시
+    var exHtml = '';
+    var prCount = 0;
+    for (var i = 0; i < s.exercises.length; i++) {
+      var ex = s.exercises[i];
       var exInfo = getExercise(ex.exerciseId);
-      if (exInfo && sessions[i].tags.indexOf(maxPart) >= 0) {
-        var exVol = 0;
-        for (var k = 0; k < ex.sets.length; k++) {
-          if (ex.sets[k].done) {
-            exVol += (ex.sets[k].weight || 0) * (ex.sets[k].reps || 0);
-          }
-        }
-        exVolumes[ex.exerciseId] = (exVolumes[ex.exerciseId] || 0) + exVol;
+      if (!exInfo) continue;
+
+      var doneSets = 0;
+      var hasPR = false;
+      for (var j = 0; j < ex.sets.length; j++) {
+        if (ex.sets[j].done) doneSets++;
+        if (ex.sets[j].isPR) { hasPR = true; prCount++; }
       }
-    }
-  }
 
-  var exIds = Object.keys(exVolumes).sort(function(a, b) {
-    return exVolumes[b] - exVolumes[a];
-  });
-  for (var i = 0; i < Math.min(2, exIds.length); i++) {
-    var ex = getExercise(exIds[i]);
-    if (ex) {
-      topExercises.push({
-        name: ex.name,
-        volume: exVolumes[exIds[i]]
-      });
+      exHtml += exInfo.name + ' ' + doneSets + '세트';
+      if (hasPR) exHtml += '<span class="lw-pr-badge">PR</span>';
+      if (i < s.exercises.length - 1) exHtml += ' · ';
     }
-  }
 
-  var exHtml = '';
-  for (var i = 0; i < topExercises.length; i++) {
-    exHtml +=
-      '<div class="hero-exercise">' +
-        '<div class="hero-ex-name">' + topExercises[i].name + '</div>' +
-        '<div class="hero-ex-vol">' + formatNum(topExercises[i].volume) + 'kg</div>' +
+    html +=
+      '<div class="lw-card" onclick="openBottomSheet(\'' + s.date + '\')">' +
+        '<div class="lw-header">' +
+          '<span class="lw-date">' + formatDate(s.date) + '</span>' +
+          '<div class="lw-tags">' + tagsHtml + '</div>' +
+        '</div>' +
+        '<div class="lw-stats">' +
+          '<div class="lw-stat">' +
+            '<span class="lw-stat-num">' + formatNum(s.totalVolume || 0) + '<small>kg</small></span>' +
+            '<span class="lw-stat-label">볼륨</span>' +
+          '</div>' +
+          '<div class="lw-stat">' +
+            '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
+            '<span class="lw-stat-label">시간</span>' +
+          '</div>' +
+          '<div class="lw-stat">' +
+            '<span class="lw-stat-num">' + formatNum(s.totalCalories || 0) + '<small>kcal</small></span>' +
+            '<span class="lw-stat-label">칼로리</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="lw-exercises">' + exHtml + '</div>' +
       '</div>';
   }
 
-  el.innerHTML =
-    '<div class="hero-card-inner">' +
-      '<div class="hero-part-name">가장 많이 한 부위</div>' +
-      '<div class="hero-part-title">' + partName + '</div>' +
-      '<div class="hero-part-vol">' + formatNum(maxVolume) + 'kg</div>' +
-      '<div class="hero-exercises">' + exHtml + '</div>' +
-    '</div>';
+  el.innerHTML = html;
 }
-
 // ══ 주간 캘린더 ══
 function renderWeekCal() {
   var el = document.getElementById('weekCal');
   if (!el) return;
 
   var weekStart = getWeekStartDate();
-  var today_ = today();
-  var dows = ['일', '월', '화', '수', '목', '금', '토'];
+  var todayStr = today();
+  var dows = ['월', '화', '수', '목', '금', '토', '일'];
 
   var html = '<div class="week-cal">';
   for (var i = 0; i < 7; i++) {
@@ -157,31 +188,36 @@ function renderWeekCal() {
     d.setDate(d.getDate() + i);
     var dateStr = getLocalYMD(d);
     var dayNum = d.getDate();
-    var dowIdx = d.getDay();
-    var dow = dows[dowIdx];
+    var dowIdx = i; // 월=0 ~ 일=6 (getWeekStartDate는 월요일 시작)
 
-    var isToday = dateStr === today_;
-    var sessions = getSessionsByDate(dateStr);
-    var hasWorkout = sessions.length > 0;
+    var isToday = dateStr === todayStr;
+    var isSelected = dateStr === _selectedWeekDate;
+    var vol = getDayVolume(dateStr);
 
     var dayClass = 'week-day';
     if (isToday) dayClass += ' today';
+    if (isSelected) dayClass += ' selected';
 
-    var dot = '';
-    if (hasWorkout) {
-      dot = '<div class="week-day-dot"></div>';
-    }
+    var volHtml = vol > 0
+      ? '<div class="week-day-vol">' + formatNum(vol) + '</div>'
+      : '<div class="week-day-vol empty">-</div>';
 
     html +=
-      '<div class="' + dayClass + '">' +
+      '<div class="' + dayClass + '" onclick="selectWeekDate(\'' + dateStr + '\')">' +
+        '<div class="week-day-dow">' + dows[dowIdx] + '</div>' +
         '<div class="week-day-num">' + dayNum + '</div>' +
-        '<div class="week-day-dow">' + dow + '</div>' +
-        dot +
+        volHtml +
       '</div>';
   }
   html += '</div>';
 
   el.innerHTML = html;
+}
+
+function selectWeekDate(dateStr) {
+  _selectedWeekDate = dateStr;
+  renderWeekCal();
+  renderLastWorkoutCard();
 }
 
 // ══ 월간 캘린더 ══
