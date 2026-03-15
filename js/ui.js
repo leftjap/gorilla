@@ -15,11 +15,11 @@ function showScreen(screenId) {
     workoutScreen.style.display = 'none';
     workoutHeader.style.display = 'none';
     renderHome();
+    updateBottomButton('start');
     window.scrollTo(0, 0);
   } else if (screenId === 'workout') {
     mainView.style.display = 'none';
     workoutScreen.style.display = 'block';
-    workoutHeader.style.display = 'flex';
     renderWorkoutScreen();
   }
 }
@@ -376,4 +376,68 @@ function updateMonthTitle() {
   var [y, m] = _currentYM.split('-').map(Number);
   var el = document.getElementById('monthTitle');
   if (el) el.textContent = m + '월';
+}
+
+// ══ 하단 고정 버튼 상태 관리 ══
+var _bottomBtnState = 'start'; // 'start' | 'partSelect' | 'partSelectReady' | 'workout' | 'summary'
+
+function updateBottomButton(state) {
+  _bottomBtnState = state;
+  var btn = document.getElementById('bottomBtn');
+  if (!btn) return;
+
+  btn.style.display = 'block';
+
+  switch (state) {
+    case 'start':
+      btn.textContent = 'START WORKOUT';
+      btn.disabled = false;
+      btn.style.background = 'var(--dark)';
+      btn.style.color = 'var(--white)';
+      break;
+    case 'partSelect':
+      btn.textContent = 'START';
+      btn.disabled = true;
+      btn.style.background = 'var(--border-gray)';
+      btn.style.color = 'var(--icon-inactive)';
+      break;
+    case 'partSelectReady':
+      btn.textContent = 'START';
+      btn.disabled = false;
+      btn.style.background = 'var(--dark)';
+      btn.style.color = 'var(--white)';
+      break;
+    case 'workout':
+      btn.textContent = 'FINISH WORKOUT';
+      btn.disabled = false;
+      btn.style.background = 'var(--dark)';
+      btn.style.color = 'var(--white)';
+      break;
+    case 'summary':
+      btn.textContent = 'DONE';
+      btn.disabled = false;
+      btn.style.background = 'var(--dark)';
+      btn.style.color = 'var(--white)';
+      break;
+  }
+}
+
+function onBottomBtnClick() {
+  switch (_bottomBtnState) {
+    case 'start':
+      startWorkoutFlow();
+      break;
+    case 'partSelectReady':
+      startWorkout();
+      break;
+    case 'workout':
+      finishWorkout();
+      break;
+    case 'summary':
+      showScreen('home');
+      break;
+    case 'partSelect':
+      // disabled 상태, 동작 없음
+      break;
+  }
 }

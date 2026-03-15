@@ -300,6 +300,10 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `renderLastWorkoutCard()` — 선택된 날짜(또는 가장 최근) 운동 카드 렌더 (라운드 박스: 볼륨/칼로리/시간 + 개별 종목 칩)
 - `renderMonthCal()` — 월간 캘린더 (부위 컬러 도트)
 
+**하단 버튼:**
+- `updateBottomButton(state)` — 하단 고정 버튼 텍스트/상태 업데이트 ('start'|'partSelect'|'partSelectReady'|'workout'|'summary')
+- `onBottomBtnClick()` — 하단 버튼 클릭 시 상태에 따라 분기
+
 ### js/workout.js
 **역할:** 운동 진행 화면의 핵심 로직.
 
@@ -331,6 +335,10 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 **완료:**
 - `finishWorkout()` — 세션 저장, 완료 요약 표시
 - `renderWorkoutSummary(session)` — 완료 요약 카드
+
+**뒤로가기/취소:**
+- `onWorkoutBack()` — 헤더 뒤로가기 버튼 핸들러 (부위 선택: 홈 복귀, 운동 진행: cancelWorkout)
+- `cancelWorkout()` — 운동 취소 (confirm 후 세션 폐기 + 홈 복귀)
 
 ### js/stats.js
 **역할:** 통계 화면, 인바디 기록 UI.
@@ -368,6 +376,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 | _selectedParts | workout.js | 선택된 부위 ID 배열 |
 | _restTimer | workout.js | 휴식 타이머 상태 |
 | _workoutStartTime | workout.js | 운동 시작 시각 |
+| _bottomBtnState | ui.js | 하단 고정 버튼 현재 상태 |
 
 ---
 

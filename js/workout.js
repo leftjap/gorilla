@@ -12,10 +12,18 @@ function renderWorkoutScreen() {
   var container = document.getElementById('workoutContent');
   if (!container) return;
 
+  var workoutHeader = document.getElementById('workoutHeader');
+
   // 진행 중인 세션이 있으면 세트 입력 화면, 없으면 부위 선택
   if (_currentSession) {
+    if (workoutHeader) workoutHeader.style.display = 'flex';
+    updateWorkoutHeader(true);
+    updateBottomButton('workout');
     renderExerciseCards();
   } else {
+    if (workoutHeader) workoutHeader.style.display = 'flex';
+    updateWorkoutHeader(false);
+    updateBottomButton('partSelect');
     renderPartSelector();
   }
 }
@@ -43,7 +51,6 @@ function renderPartSelector() {
   html +=
       '</div>' +
       '<div class="part-selected-order" id="partOrder"></div>' +
-      '<button class="start-workout-btn" id="startWorkoutBtn" onclick="startWorkout()" disabled>운동 시작</button>' +
     '</div>';
 
   container.innerHTML = html;
@@ -71,15 +78,18 @@ function togglePart(partId) {
       var names = [];
       for (var i = 0; i < _selectedParts.length; i++) {
         var p = getBodyPart(_selectedParts[i]);
-        names.push('<span class="part-order-chip" style="background:#2D2D2D">' + (i + 1) + '. ' + p.name + '</span>');
+        names.push('<span class="part-order-chip" style="background:#6C6C6C">' + (i + 1) + '. ' + p.name + '</span>');
       }
       orderEl.innerHTML = names.join(' → ');
     }
   }
 
-  // 시작 버튼 활성화
-  var btn = document.getElementById('startWorkoutBtn');
-  if (btn) btn.disabled = _selectedParts.length === 0;
+  // 하단 버튼 상태 업데이트
+  if (_selectedParts.length > 0) {
+    updateBottomButton('partSelectReady');
+  } else {
+    updateBottomButton('partSelect');
+  }
 }
 
 // ══ 운동 시작 ══
@@ -160,17 +170,22 @@ function updateWorkoutHeader(inProgress) {
   var headerEl = document.getElementById('workoutHeader');
   if (!headerEl) return;
 
+  var timerEl = document.getElementById('workoutTimer');
+  var tagsEl = document.getElementById('workoutTags');
+
   if (inProgress) {
-    headerEl.style.display = 'flex';
-    // 태그 표시
-    var tagsHtml = '';
-    for (var i = 0; i < _selectedParts.length; i++) {
-      var p = getBodyPart(_selectedParts[i]);
-      tagsHtml += '<span class="wh-tag">' + p.name + '</span>';
+    if (timerEl) timerEl.style.display = 'inline';
+    if (tagsEl) {
+      var tagsHtml = '';
+      for (var i = 0; i < _selectedParts.length; i++) {
+        var p = getBodyPart(_selectedParts[i]);
+        tagsHtml += '<span class="wh-tag">' + p.name + '</span>';
+      }
+      tagsEl.innerHTML = tagsHtml;
     }
-    document.getElementById('workoutTags').innerHTML = tagsHtml;
   } else {
-    headerEl.style.display = 'none';
+    if (timerEl) timerEl.style.display = 'none';
+    if (tagsEl) tagsEl.innerHTML = '';
   }
 }
 
@@ -193,9 +208,8 @@ function renderExerciseCards() {
   // 종목 네비게이션 버튼바
   html += renderExerciseNav();
 
-  // 운동 완료 버튼
-  html += '<button class="finish-btn" onclick="finishWorkout()">운동 완료 💪</button>';
-  html += '<div style="height:100px"></div>';
+  // 하단 고정 버튼과 겹치지 않도록 여백만
+  html += '<div style="height:80px"></div>';
 
   container.innerHTML = html;
 }
@@ -296,7 +310,7 @@ function renderExerciseCard(exIdx) {
         '<span class="cardio-label">분</span>' +
         '<button class="set-check-btn' + (exData.sets[0] && exData.sets[0].done ? ' done' : '') + '" ' +
           'onclick="completeCardio(' + exIdx + ')">' +
-          (exData.sets[0] && exData.sets[0].done ? '✓' : '') +
+          '✓' +
         '</button>' +
       '</div>';
   } else {
@@ -360,7 +374,7 @@ function renderSetRow(exIdx, setIdx) {
       '<td>' +
         '<button class="set-check-btn' + (setData.done ? ' done' : '') + '" ' +
           'onclick="completeSet(' + exIdx + ',' + setIdx + ')">' +
-          (setData.done ? '✓' : '') +
+          '✓' +
         '</button>' +
       '</td>' +
     '</tr>';
@@ -559,6 +573,10 @@ function finishWorkout() {
   if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
   dismissRestTimer();
 
+  // 헤더 숨기기
+  var workoutHeader = document.getElementById('workoutHeader');
+  if (workoutHeader) workoutHeader.style.display = 'none';
+
   // 완료 요약 표시
   renderWorkoutSummary(_currentSession);
 
@@ -640,10 +658,11 @@ function renderWorkoutSummary(session) {
       '</div>' +
       '<div class="summary-detail">' + exCount + '종목 · ' + setCount + '세트</div>' +
       (prHtml ? '<div class="summary-prs"><div class="summary-prs-title">개인 기록 갱신</div>' + prHtml + '</div>' : '') +
-      '<button class="summary-home-btn" onclick="showScreen(\'home\')">홈으로</button>' +
+      '<div style="height:80px"></div>' +
     '</div>';
 
   container.innerHTML = html;
+  updateBottomButton('summary');
 }
 
 // ══ 앱 복귀 시 진행 중 세션 복원 ══
@@ -657,4 +676,34 @@ function restoreSession() {
     return true;
   }
   return false;
+}
+
+// ══ 뒤로가기 / 운동 취소 ══
+function onWorkoutBack() {
+  if (_currentSession) {
+    cancelWorkout();
+  } else {
+    // 부위 선택 화면에서 뒤로가기 → 홈
+    _selectedParts = [];
+    showScreen('home');
+  }
+}
+
+function cancelWorkout() {
+  if (!confirm('운동을 취소하시겠습니까?\n기록이 저장되지 않습니다.')) return;
+
+  // 임시 저장 제거
+  localStorage.removeItem('wk_current_session');
+
+  // 타이머 정리
+  if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
+  dismissRestTimer();
+
+  // 상태 초기화
+  _currentSession = null;
+  _selectedParts = [];
+  _workoutStartTime = null;
+  _currentExerciseIndex = 0;
+
+  showScreen('home');
 }
