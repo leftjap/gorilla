@@ -136,10 +136,22 @@ function renderLastWorkoutCard() {
         if (ex.sets[j].isPR) hasPR = true;
       }
 
+      // 유산소(cardio)는 reps를 분으로 표기
+      var setsLabel = '';
+      if (exInfo.equipment === 'cardio') {
+        var totalMin = 0;
+        for (var m = 0; m < ex.sets.length; m++) {
+          if (ex.sets[m].done) totalMin += ex.sets[m].reps || 0;
+        }
+        setsLabel = totalMin + '분';
+      } else {
+        setsLabel = doneSets + '세트';
+      }
+
       exChipsHtml +=
         '<div class="lw-ex-chip">' +
           '<span>' + exInfo.name + '</span>' +
-          '<span class="lw-ex-sets">' + doneSets + '세트</span>' +
+          '<span class="lw-ex-sets">' + setsLabel + '</span>' +
           (hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
         '</div>';
     }

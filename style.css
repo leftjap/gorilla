@@ -1198,7 +1198,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: calc(max(12px, env(safe-area-inset-top)) + 8px) 12px 4px 20px;
+  padding: calc(max(12px, env(safe-area-inset-top)) + 8px) 16px 4px 20px;
   background: var(--bg-gray);
   border-bottom: none;
 }
@@ -1226,7 +1226,7 @@ input {
 
 /* ── 요약 메시지 ── */
 .summary-msg {
-  padding: 16px 20px 8px 20px;
+  padding: 16px 20px 20px 20px;
   margin: 0;
   background: transparent;
 }
@@ -1490,7 +1490,7 @@ input {
   align-items: center;
   gap: 0;
   cursor: pointer;
-  padding: 4px 0 0 0;
+  padding: 0;
   border-radius: 10px;
   transition: background 0.15s ease;
 }
@@ -1503,7 +1503,7 @@ input {
   font-size: 13px;
   font-weight: 500;
   color: var(--icon-inactive);
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 
 .week-day-num {
@@ -1558,7 +1558,7 @@ input {
   color: var(--icon-inactive);
   height: 14px;
   line-height: 14px;
-  margin-top: 0;
+  margin-top: 1px;
   padding-top: 0;
   font-variant-numeric: tabular-nums;
 }
