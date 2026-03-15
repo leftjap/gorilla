@@ -1198,7 +1198,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 60px 20px 4px 20px;
+  padding: 47px 20px 4px 20px;
   background: var(--bg-gray);
   border-bottom: none;
 }
@@ -1291,7 +1291,7 @@ input {
 
 .lw-date {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--dark);
 }
 
@@ -1330,7 +1330,7 @@ input {
 
 .lw-stat-num {
   font-size: 22px;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--dark);
 }
 
@@ -1361,9 +1361,9 @@ input {
   gap: 5px;
   padding: 8px 14px;
   background: transparent;
-  border: 1.5px solid var(--border-gray);
-  border-radius: 10px;
-  font-size: 13px;
+  border: 1px solid var(--border-gray);
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 400;
   color: var(--dark);
 }
@@ -1474,7 +1474,7 @@ input {
 /* ── 주간 캘린더 ── */
 .week-cal-container {
   background: transparent;
-  padding: 0 20px 30px 20px;
+  padding: 0 30px 30px 20px;
   margin: 0;
 }
 
@@ -1516,7 +1516,7 @@ input {
   font-size: 18px;
   font-weight: 400;
   color: var(--dark);
-  border-radius: 50%;
+  border-radius: 12px;
   transition: all 0.2s ease;
   margin-top: 0;
 }
@@ -1529,7 +1529,9 @@ input {
   font-size: 18px;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  transform: translateY(-2px);
 }
 
 /* 오늘: 더 강한 떠오르는 효과 */
@@ -1538,11 +1540,16 @@ input {
   color: var(--dark);
   font-weight: 500;
   font-size: 19px;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
-  transform: translateY(-3px);
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10);
+  transform: translateY(-4px);
+}
+
+.week-day.today.selected .week-day-num {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 3px 8px rgba(0,0,0,0.12);
+  transform: translateY(-5px);
 }
 
 /* 볼륨 숫자 — 날짜에 바짝 밀착 */
