@@ -109,7 +109,6 @@ function renderLastWorkoutCard() {
   if (sessions.length === 0) {
     el.innerHTML =
       '<div class="lw-empty">' +
-        '<div class="lw-empty-icon">💪</div>' +
         '<div class="lw-empty-text">운동 기록이 없습니다</div>' +
       '</div>';
     return;
@@ -223,8 +222,10 @@ function renderWeekCal() {
     html +=
       '<div class="' + dayClass + '" onclick="selectWeekDate(\'' + dateStr + '\')">' +
         '<div class="week-day-dow">' + dows[i] + '</div>' +
-        '<div class="week-day-num">' + dayNum + '</div>' +
-        '<div class="' + volClass + '">' + volText + '</div>' +
+        '<div class="week-day-body">' +
+          '<div class="week-day-num">' + dayNum + '</div>' +
+          '<div class="' + volClass + '">' + volText + '</div>' +
+        '</div>' +
       '</div>';
   }
   html += '</div>';
