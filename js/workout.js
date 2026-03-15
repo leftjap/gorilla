@@ -71,7 +71,7 @@ function togglePart(partId) {
       var names = [];
       for (var i = 0; i < _selectedParts.length; i++) {
         var p = getBodyPart(_selectedParts[i]);
-        names.push('<span class="part-order-chip" style="background:' + p.color + '">' + (i + 1) + '. ' + p.name + '</span>');
+        names.push('<span class="part-order-chip" style="background:#2D2D2D">' + (i + 1) + '. ' + p.name + '</span>');
       }
       orderEl.innerHTML = names.join(' → ');
     }
@@ -166,7 +166,7 @@ function updateWorkoutHeader(inProgress) {
     var tagsHtml = '';
     for (var i = 0; i < _selectedParts.length; i++) {
       var p = getBodyPart(_selectedParts[i]);
-      tagsHtml += '<span class="wh-tag" style="background:' + p.color + '">' + p.name + '</span>';
+      tagsHtml += '<span class="wh-tag">' + p.name + '</span>';
     }
     document.getElementById('workoutTags').innerHTML = tagsHtml;
   } else {
