@@ -1196,7 +1196,7 @@ input {
 
 /* ── 요약 메시지 ── */
 .summary-msg {
-  padding: 60px calc((100vw - 40px) / 14 + 6px) 20px 20px;
+  padding: 60px calc((100vw - 40px) / 14 + 6px) 30px 20px;
   margin: 0;
   background: transparent;
 }
@@ -1524,8 +1524,8 @@ input {
 /* 선택된 날: 10시 방향으로 떠오름 */
 .week-day.selected .week-day-body {
   background: var(--white);
-  border-radius: 14px;
-  width: 50px;
+  border-radius: 16px;
+  width: 56px;
   aspect-ratio: 1;
   justify-content: center;
   box-shadow: 0 4px 14px rgba(0,0,0,0.15);
@@ -1535,8 +1535,8 @@ input {
 /* 오늘+선택: 더 강하게 */
 .week-day.today.selected .week-day-body {
   background: var(--white);
-  border-radius: 16px;
-  width: 54px;
+  border-radius: 18px;
+  width: 60px;
   aspect-ratio: 1;
   justify-content: center;
   box-shadow: 0 8px 24px rgba(0,0,0,0.22), 0 3px 8px rgba(0,0,0,0.12);
