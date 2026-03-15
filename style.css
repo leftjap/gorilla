@@ -1198,7 +1198,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: calc(max(12px, env(safe-area-inset-top)) + 4px) 16px 0 16px;
+  padding: calc(max(12px, env(safe-area-inset-top)) + 8px) 20px 4px 20px;
   background: var(--bg-gray);
   border-bottom: none;
 }
@@ -1211,13 +1211,13 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--icon-inactive);
+  color: var(--gray);
 }
 
 .header-btn:active {
@@ -1246,16 +1246,21 @@ input {
 .summary-msg-sub {
   font-size: 13px;
   color: var(--gray);
+  line-height: 1.4;
+}
+
+.summary-msg-sub .vol-up,
+.summary-msg-sub .vol-down {
+  display: inline;
+  font-weight: 600;
 }
 
 .summary-msg-sub .vol-up {
   color: #e87461;
-  font-weight: 600;
 }
 
 .summary-msg-sub .vol-down {
   color: var(--blue);
-  font-weight: 600;
 }
 
 /* ── 직전 운동 카드 ── */
@@ -1307,7 +1312,8 @@ input {
   display: flex;
   gap: 0;
   margin-bottom: 12px;
-  background: var(--bg-gray);
+  background: transparent;
+  border: 1px solid var(--border-gray);
   border-radius: 10px;
   padding: 12px 0;
 }
@@ -1353,7 +1359,8 @@ input {
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: var(--bg-gray);
+  background: transparent;
+  border: 1px solid var(--border-gray);
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
@@ -1466,7 +1473,7 @@ input {
 /* ── 주간 캘린더 ── */
 .week-cal-container {
   background: transparent;
-  padding: 0 12px 8px 12px;
+  padding: 0 12px 12px 12px;
   margin: 0;
 }
 
@@ -1483,13 +1490,13 @@ input {
   align-items: center;
   gap: 0;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 4px 0 0 0;
   border-radius: 10px;
   transition: background 0.15s ease;
 }
 
 .week-day:active {
-  background: var(--light-gray);
+  background: rgba(0,0,0,0.03);
 }
 
 .week-day-dow {
@@ -1512,36 +1519,47 @@ input {
   transition: all 0.25s ease;
 }
 
-/* 오늘: 뉴모피즘 떠오르는 효과 */
+/* 선택된 날 (공통 떠오르는 효과) */
+.week-day.selected .week-day-num {
+  background: var(--white);
+  color: var(--dark);
+  font-weight: 800;
+  font-size: 19px;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  box-shadow:
+    -3px -3px 6px rgba(255,255,255,0.95),
+    3px 3px 8px rgba(0,0,0,0.1),
+    0 1px 3px rgba(0,0,0,0.05);
+  transform: translateY(-1px);
+}
+
+/* 오늘: 더 강한 떠오르는 효과 */
 .week-day.today .week-day-num {
   background: var(--white);
   color: var(--dark);
   font-weight: 800;
   font-size: 20px;
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 16px;
   box-shadow:
-    -4px -4px 8px rgba(255,255,255,0.9),
-    4px 4px 10px rgba(0,0,0,0.12),
-    0 2px 4px rgba(0,0,0,0.06);
-  transform: translateY(-2px);
+    -5px -5px 10px rgba(255,255,255,1),
+    5px 5px 14px rgba(0,0,0,0.13),
+    0 2px 6px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
 }
 
-/* 선택된 날 (오늘 아닌) */
-.week-day.selected:not(.today) .week-day-num {
-  background: var(--light-gray);
-  color: var(--dark);
-}
-
-/* 볼륨 숫자 */
+/* 볼륨 숫자 — 날짜에 바짝 밀착 */
 .week-day-vol {
   font-size: 11px;
   font-weight: 600;
   color: var(--icon-inactive);
-  height: 16px;
-  line-height: 16px;
-  margin-top: 2px;
+  height: 14px;
+  line-height: 14px;
+  margin-top: 0;
+  padding-top: 0;
   font-variant-numeric: tabular-nums;
 }
 

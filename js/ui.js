@@ -65,9 +65,9 @@ function renderSummaryMsg() {
     if (lastWeekVol === 0) {
       subText = '이번 주도 꾸준히 하고 있어요!';
     } else if (diff > 0) {
-      subText = '지난주보다 <span class="vol-up">' + formatNum(diff) + 'kg 더</span> 들고 있어요';
+      subText = '지난주보다 <span class="vol-up">' + formatNum(diff) + 'kg</span> 더 들고 있어요';
     } else if (diff < 0) {
-      subText = '지난주보다 <span class="vol-down">' + formatNum(Math.abs(diff)) + 'kg 덜</span> 들고 있어요';
+      subText = '지난주보다 <span class="vol-down">' + formatNum(Math.abs(diff)) + 'kg</span> 덜 들고 있어요';
     } else {
       subText = '지난주와 같은 페이스예요!';
     }
