@@ -30,8 +30,8 @@ function startWorkoutFlow() {
 
 // ══ 홈 화면 ══
 function renderHome() {
-  renderWeekCal();
   renderSummaryMsg();
+  renderWeekCal();
   renderLastWorkoutCard();
 }
 
