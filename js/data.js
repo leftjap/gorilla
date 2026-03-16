@@ -374,6 +374,59 @@ function getMonthDayVolumes(ym) {
 }
 
 /**
+ * 특정 월의 부위별 총 볼륨 랭킹 반환
+ * @returns [{ partId, partName, volume, percentage, color }, ...] (볼륨 내림차순)
+ */
+function getMonthPartVolumes(ym) {
+  var target = ym || getYM();
+  var sessions = getSessions().filter(function(s) { return getYM(s.date) === target; });
+
+  var partMap = {}; // { partId: volume }
+  var totalVol = 0;
+
+  for (var i = 0; i < sessions.length; i++) {
+    var s = sessions[i];
+    for (var j = 0; j < s.exercises.length; j++) {
+      var ex = s.exercises[j];
+      var meta = getExercise(ex.exerciseId);
+      if (!meta) continue;
+      if (meta.equipment === 'cardio') continue; // 유산소 제외
+
+      var partId = meta.bodyPart;
+      if (!partMap[partId]) partMap[partId] = 0;
+
+      for (var k = 0; k < ex.sets.length; k++) {
+        var set = ex.sets[k];
+        if (set.done) {
+          var v = (set.weight || 0) * (set.reps || 0);
+          partMap[partId] += v;
+          totalVol += v;
+        }
+      }
+    }
+  }
+
+  // 배열로 변환 + 정렬
+  var result = [];
+  var partIds = Object.keys(partMap);
+  for (var i = 0; i < partIds.length; i++) {
+    var pid = partIds[i];
+    var part = getBodyPart(pid);
+    if (partMap[pid] <= 0) continue;
+    result.push({
+      partId: pid,
+      partName: part ? part.name : pid,
+      volume: partMap[pid],
+      percentage: totalVol > 0 ? Math.round((partMap[pid] / totalVol) * 1000) / 10 : 0,
+      color: part ? part.color : '#999'
+    });
+  }
+
+  result.sort(function(a, b) { return b.volume - a.volume; });
+  return result;
+}
+
+/**
  * 특정 월의 날짜별 PR 여부 맵 반환
  * @returns { '2026-03-05': true, ... }
  */

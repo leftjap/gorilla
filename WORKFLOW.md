@@ -365,6 +365,8 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `getLastWeekVolumeAtSamePoint()` — 지난주 같은 시점까지의 볼륨
 - `getLastWeekTotalVolume()` — 지난주 전체 볼륨 (월~일)
 - `hasPROnDate(dateStr)` — 특정 날짜에 PR이 있었는지 확인
+- `getMonthDayVolumes(ym)` — 특정 월의 날짜별 볼륨 맵 반환
+- `getMonthPRDates(ym)` — 특정 월의 날짜별 PR 여부 맵 반환
 
 ---
 
@@ -451,20 +453,18 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 ---
 
 ### js/stats.js
-**역할:** 통계 화면, 인바디 기록 UI.
+**역할:** 통계/기록 화면 전체.
 
-**통계:**
-- `renderStats()` — 통계 화면 전체 렌더
-- `renderPeriodStats(period)` — 주간/월간 통계 카드
-- `renderVolumeChart()` — 볼륨 추이 (준비 중)
-- `renderCalorieChart()` — 칼로리 추이 (준비 중)
+**화면 렌더:**
+- `renderStatsScreen()` — 통계 화면 전체 렌더 (헤더 + 요약 + 캘린더 + 운동 카드)
+- `renderStatsHeader()` — 헤더 (뒤로가기 + 월 이동)
+- `renderStatsSummary()` — 월간 요약문
+- `renderStatsMonthCal()` — 월간 캘린더 (주간 캘린더 스타일, 볼륨/PR 표시)
+- `renderStatsWorkoutCard()` — 선택된 날짜의 운동 카드 (세션 병합)
 
-**인바디:**
-- `renderInbodySection()` — 인바디 섹션 렌더
-- `renderInbodyChart()` — 인바디 시계열 (최근 10개)
-- `openInbodyForm()` — 인바디 입력 폼 열기
-- `saveInbodyForm()` — 인바디 입력 저장
-- `closeInbodyForm()` — 폼 닫기
+**월 이동/날짜 선택:**
+- `changeStatsMonth(delta)` — 월 전환
+- `selectStatsDate(dateStr)` — 캘린더 날짜 선택
 
 ---
 
@@ -516,8 +516,8 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 | _currentExerciseIndex | workout.js | 현재 보고 있는 종목 인덱스 |
 | _isFinishing | workout.js | finishWorkout 중복 실행 방지 플래그 |
 | _longPressTimer | ui.js | CONTINUE 버튼 길게 누르기 타이머 ID |
-| _statsPeriod | stats.js | 통계 기간 ('week'|'month') |
-| _inbodyFormMode | stats.js | 인바디 폼 모드 ('add'|'edit'|null) |
+| _statsYM | stats.js | 통계 화면에서 보고 있는 월 (YYYY-MM) |
+| _statsSelectedDate | stats.js | 통계 화면 캘린더에서 선택된 날짜 |
 | _settingsSelectedPart | settings.js | 설정 화면에서 선택된 부위 ID (기본: 'chest') |
 | _selectedEquipment | settings.js | 종목 추가 폼에서 선택된 장비 (기본: 'barbell') |
 
@@ -553,8 +553,24 @@ onBottomBtnClick() → startWorkoutFlow() → showScreen('workout')
 showScreen('home')
 → renderHome()
   → renderSummaryMsg() → getThisWeekVolume(), getLastWeekVolumeAtSamePoint()
+    → [캘린더 아이콘] showScreen('stats')
+    → [톱니바퀴 아이콘] showScreen('settings')
   → renderWeekCal() → getDayVolume(), hasPROnDate()
   → renderLastWorkoutCard() → getSessionsByDate(), getLastSession()
+```
+
+### 통계 화면
+```
+showScreen('stats')
+→ renderStatsScreen()
+  → renderStatsHeader()
+  → renderStatsSummary() → getMonthSummary(_statsYM)
+  → renderStatsMonthCal() → getMonthDayVolumes(_statsYM), getMonthPRDates(_statsYM)
+  → renderStatsWorkoutCard() (선택된 날짜가 있으면)
+    → getSessionsByDate(_statsSelectedDate)
+→ [월 이동 화살표] changeStatsMonth(delta) → renderStatsScreen()
+→ [날짜 탭] selectStatsDate(dateStr) → renderStatsScreen()
+→ [뒤로] showScreen('home')
 ```
 
 ### 설정 화면

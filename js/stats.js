@@ -22,8 +22,10 @@ function renderStatsScreen() {
   // 선택된 날짜의 운동 카드
   html += '<div id="statsWorkoutCard" class="stats-workout-card"></div>';
 
-  // 히어로 랭킹 + 월별 차트는 작업지시서 B, C에서 추가
-  html += '<div id="statsHeroRanking"></div>';
+  // 히어로 랭킹
+  html += renderStatsHeroRanking();
+
+  // 월별 볼륨 차트 (작업지시서 C에서 추가)
   html += '<div id="statsMonthlyChart"></div>';
 
   // 하단 여백
@@ -167,6 +169,59 @@ function renderStatsMonthCal() {
 function selectStatsDate(dateStr) {
   _statsSelectedDate = dateStr;
   renderStatsScreen();
+}
+
+// ══ 부위별 볼륨 랭킹 (히어로 카드) ══
+function renderStatsHeroRanking() {
+  var rankings = getMonthPartVolumes(_statsYM);
+  var parts = _statsYM.split('-');
+  var m = parseInt(parts[1]);
+
+  if (rankings.length === 0) {
+    return '';
+  }
+
+  var html = '<div class="stats-hero">';
+
+  // 요약문
+  var topPart = rankings[0];
+  html +=
+    '<div class="stats-hero-summary">' +
+      m + '월에는 <strong>' + topPart.partName + '</strong>을 가장 많이 했어요' +
+    '</div>';
+
+  // 1위 카드 (한 줄)
+  html +=
+    '<div class="stats-hero-first">' +
+      '<div class="stats-hero-first-left">' +
+        '<div class="stats-hero-first-badge" style="background:' + topPart.color + '">1</div>' +
+        '<div class="stats-hero-first-info">' +
+          '<div class="stats-hero-first-name">' + topPart.partName + '</div>' +
+          '<div class="stats-hero-first-meta">' + topPart.percentage + '%</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stats-hero-first-vol">' + formatNum(topPart.volume) + '<small>kg</small></div>' +
+    '</div>';
+
+  // 2~7위 (2열)
+  if (rankings.length > 1) {
+    html += '<div class="stats-hero-grid">';
+    for (var i = 1; i < rankings.length && i < 7; i++) {
+      var r = rankings[i];
+      html +=
+        '<div class="stats-hero-card">' +
+          '<div class="stats-hero-card-rank" style="background:' + r.color + '">' + (i + 1) + '</div>' +
+          '<div class="stats-hero-card-info">' +
+            '<div class="stats-hero-card-name">' + r.partName + '</div>' +
+            '<div class="stats-hero-card-vol">' + formatNum(r.volume) + '<small>kg</small></div>' +
+          '</div>' +
+        '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
 // ══ 선택된 날짜의 운동 카드 ══
