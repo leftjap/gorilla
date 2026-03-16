@@ -339,6 +339,51 @@ function renderExerciseCard(exIdx) {
   return html;
 }
 
+// ══ 중량/횟수 증감 ══
+function getWeightDelta(exerciseId) {
+  var meta = getExercise(exerciseId);
+  if (!meta) return 5;
+  var eq = meta.equipment;
+  // barbell, machine, cable → 5kg / dumbbell, bodyweight → 1kg
+  if (eq === 'dumbbell' || eq === 'bodyweight') return 1;
+  return 5;
+}
+
+function adjustSetValue(exIdx, setIdx, field, direction) {
+  var exData = _currentSession.exercises[exIdx];
+  if (!exData) return;
+  var setData = exData.sets[setIdx];
+  if (!setData) return;
+  if (setData.done) return; // 완료된 세트는 조정 불가
+
+  var inputId = (field === 'weight') ? 'setW-' + exIdx + '-' + setIdx : 'setR-' + exIdx + '-' + setIdx;
+  var inputEl = document.getElementById(inputId);
+  if (!inputEl) return;
+
+  var current = parseFloat(inputEl.value) || 0;
+  var delta;
+
+  if (field === 'weight') {
+    delta = getWeightDelta(exData.exerciseId) * direction;
+  } else {
+    delta = 1 * direction; // reps는 항상 ±1
+  }
+
+  var newVal = Math.max(0, current + delta);
+
+  // 소수점 처리 (2.5kg 단위 등 향후 대비)
+  newVal = Math.round(newVal * 10) / 10;
+
+  inputEl.value = newVal;
+
+  // 세션 데이터에도 반영
+  if (field === 'weight') {
+    setData.weight = newVal;
+  } else {
+    setData.reps = newVal;
+  }
+}
+
 function renderSetRow(exIdx, setIdx) {
   var exData = _currentSession.exercises[exIdx];
   var setData = exData.sets[setIdx];
@@ -354,21 +399,29 @@ function renderSetRow(exIdx, setIdx) {
     '<tr class="' + rowClass + '" id="setRow-' + exIdx + '-' + setIdx + '">' +
       '<td><span class="set-num">' + (setIdx + 1) + '</span></td>' +
       '<td>' +
-        '<input type="number" class="set-input' + (setData.done ? ' filled' : '') + '" ' +
-          'id="setW-' + exIdx + '-' + setIdx + '" ' +
-          'value="' + (setData.weight || '') + '" ' +
-          'placeholder="' + (prev ? prev.weight : '') + '" ' +
-          'inputmode="decimal" ' +
-          'onfocus="this.select()">' +
+        '<div class="set-adjust-group">' +
+          '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'weight\',-1)">－</button>' +
+          '<input type="text" class="set-input' + (setData.done ? ' filled' : '') + '" ' +
+            'id="setW-' + exIdx + '-' + setIdx + '" ' +
+            'value="' + (setData.weight || '') + '" ' +
+            'placeholder="' + (prev ? prev.weight : '') + '" ' +
+            'inputmode="decimal" ' +
+            'onfocus="this.select()">' +
+          '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'weight\',1)">＋</button>' +
+        '</div>' +
         (prev ? '<span class="prev-val">' + prev.weight + '</span>' : '') +
       '</td>' +
       '<td>' +
-        '<input type="number" class="set-input' + (setData.done ? ' filled' : '') + '" ' +
-          'id="setR-' + exIdx + '-' + setIdx + '" ' +
-          'value="' + (setData.reps || '') + '" ' +
-          'placeholder="' + (prev ? prev.reps : (meta ? meta.defaultReps : '')) + '" ' +
-          'inputmode="numeric" ' +
-          'onfocus="this.select()">' +
+        '<div class="set-adjust-group">' +
+          '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'reps\',-1)">－</button>' +
+          '<input type="text" class="set-input' + (setData.done ? ' filled' : '') + '" ' +
+            'id="setR-' + exIdx + '-' + setIdx + '" ' +
+            'value="' + (setData.reps || '') + '" ' +
+            'placeholder="' + (prev ? prev.reps : (meta ? meta.defaultReps : '')) + '" ' +
+            'inputmode="numeric" ' +
+            'onfocus="this.select()">' +
+          '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'reps\',1)">＋</button>' +
+        '</div>' +
         (prev ? '<span class="prev-val">' + prev.reps + '</span>' : '') +
       '</td>' +
       '<td>' +

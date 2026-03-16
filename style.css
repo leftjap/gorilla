@@ -664,9 +664,74 @@ input {
   background: var(--white);
 }
 
+/* 네이티브 숫자 스피너 숨김 */
+.set-input::-webkit-outer-spin-button,
+.set-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.set-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 .set-input.filled {
   background: var(--bg-gray);
   border-color: var(--icon-inactive);
+}
+
+/* ── ＋/－ 조정 버튼 그룹 ── */
+.set-adjust-group {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.set-adjust-group .set-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 8px 2px;
+}
+
+.set-adjust-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--light-gray);
+  color: var(--dark);
+  font-size: 16px;
+  font-weight: 700;
+  border: 1px solid var(--border-gray);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.set-adjust-btn:first-child {
+  border-radius: 8px 0 0 8px;
+}
+
+.set-adjust-btn:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.set-adjust-btn:active {
+  background: var(--border-gray);
+}
+
+/* 완료된 세트의 조정 버튼 비활성화 */
+.set-row.set-done .set-adjust-btn {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .prev-val {

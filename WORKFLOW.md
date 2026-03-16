@@ -355,6 +355,8 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `completeSet(exerciseId, setIndex)` — 세트 완료 처리 → PR 감지 + 타이머 시작
 - `addSet(exerciseId)` — 세트 추가
 - `getLastSessionSets(exerciseId)` — 지난번 같은 종목 세트 데이터 조회
+- `getWeightDelta(exerciseId)` — 장비 타입별 중량 증감 단위 반환 (barbell/machine/cable: 5, dumbbell/bodyweight: 1)
+- `adjustSetValue(exIdx, setIdx, field, direction)` — ＋/－ 버튼으로 중량/횟수 증감
 
 **타이머:**
 - `startRestTimer(seconds)` — 휴식 타이머 시작 (Date.now + seconds)
