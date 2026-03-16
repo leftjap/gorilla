@@ -332,7 +332,7 @@ function renderExerciseCard(exIdx) {
     html +=
         '</tbody>' +
       '</table>' +
-      '<button class="add-set-btn" onclick="addSet(' + exIdx + ')">+ 세트 추가</button>';
+      '<button class="add-set-btn" onclick="addSet(' + exIdx + ')">세트 추가</button>';
   }
 
   html += '</div></div>';

@@ -615,7 +615,7 @@ input {
 }
 
 .set-table thead {
-  background: var(--bg-gray);
+  background: none;
 }
 
 .set-table th {
@@ -624,13 +624,14 @@ input {
   font-weight: 600;
   color: var(--icon-inactive);
   font-size: 11px;
-  border-bottom: 1px solid var(--border-gray);
+  border-bottom: none;
 }
 
 .set-table td {
   padding: 8px 4px;
   text-align: center;
   border-bottom: none;
+  vertical-align: middle;
 }
 
 .st-set, .st-chk {
@@ -685,14 +686,18 @@ input {
   display: flex;
   align-items: center;
   gap: 0;
+  border: 1px solid var(--border-gray);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .set-adjust-group .set-input {
   flex: 1;
   min-width: 0;
   border-radius: 0;
-  border-left: none;
-  border-right: none;
+  border: none;
+  border-left: 1px solid var(--border-gray);
+  border-right: 1px solid var(--border-gray);
   font-size: 15px;
   font-weight: 600;
   padding: 8px 2px;
@@ -709,7 +714,7 @@ input {
   color: var(--dark);
   font-size: 16px;
   font-weight: 700;
-  border: 1px solid var(--border-gray);
+  border: none;
   cursor: pointer;
   transition: background 0.15s ease;
   -webkit-tap-highlight-color: transparent;
@@ -717,11 +722,11 @@ input {
 }
 
 .set-adjust-btn:first-child {
-  border-radius: 8px 0 0 8px;
+  border-radius: 0;
 }
 
 .set-adjust-btn:last-child {
-  border-radius: 0 8px 8px 0;
+  border-radius: 0;
 }
 
 .set-adjust-btn:active {
@@ -763,13 +768,15 @@ input {
 }
 
 .add-set-btn {
-  width: 100%;
-  padding: 10px;
-  border-radius: 12px;
+  width: auto;
+  padding: 8px 20px;
+  border-radius: 8px;
   background: var(--light-gray);
   color: var(--gray);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
+  display: block;
+  margin: 0 auto;
 }
 
 .add-set-btn:active {
