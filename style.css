@@ -660,8 +660,12 @@ input {
 }
 
 .set-row.set-done {
-  background: none;
-  opacity: 0.5;
+  background: var(--bg-gray);
+  opacity: 0.6;
+}
+
+.set-row.set-done td {
+  background: var(--bg-gray);
 }
 
 .set-row.set-pr {
