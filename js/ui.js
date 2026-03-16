@@ -269,6 +269,17 @@ function renderLastWorkoutCard() {
     '</div>';
 
   el.innerHTML = html;
+
+  // ── 홈 화면 종목 칩 롱프레스 바인딩 ──
+  var homeChips = el.querySelectorAll('.lw-ex-chip');
+  for (var ci = 0; ci < homeChips.length; ci++) {
+    (function(chip) {
+      bindLongPress(chip, function() {
+        // 홈에서는 롱프레스 시 통계 화면으로 이동
+        showScreen('stats');
+      }, 600);
+    })(homeChips[ci]);
+  }
 }
 
 // ══ 주간 캘린더 ══
@@ -695,13 +706,16 @@ function bindLongPress(el, callback, ms) {
   var triggered = false;
   var startX = 0;
   var startY = 0;
+  var pressClass = 'long-pressing';
 
   el.addEventListener('touchstart', function(e) {
     triggered = false;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
+    el.classList.add(pressClass);
     timer = setTimeout(function() {
       triggered = true;
+      el.classList.remove(pressClass);
       callback(e);
     }, ms || 600);
   }, { passive: true });
@@ -714,16 +728,19 @@ function bindLongPress(el, callback, ms) {
       clearTimeout(timer);
       timer = null;
       triggered = false;
+      el.classList.remove(pressClass);
     }
   }, { passive: true });
 
   el.addEventListener('touchend', function(e) {
     if (timer) { clearTimeout(timer); timer = null; }
+    el.classList.remove(pressClass);
     if (triggered) { e.preventDefault(); triggered = false; }
   }, { passive: false });
 
   el.addEventListener('touchcancel', function() {
     if (timer) { clearTimeout(timer); timer = null; }
     triggered = false;
+    el.classList.remove(pressClass);
   }, { passive: true });
 }
