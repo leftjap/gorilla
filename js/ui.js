@@ -539,6 +539,7 @@ function onBottomBtnClick() {
       // 진행 중인 세션 복원하고 운동 화면으로
       restoreSession();
       showScreen('workout');
+      updateBottomButton('workout');
       break;
     case 'partSelectReady':
       startWorkout();
