@@ -625,9 +625,10 @@ function startRestTimer(seconds) {
   var el = document.getElementById('restTimerBar');
   if (!el) return;
 
-  // FINISH WORKOUT 버튼 숨기기
+  // FINISH WORKOUT 버튼 숨기고 타이머를 버튼 자리로 이동
   var bottomBtn = document.getElementById('bottomBtn');
   if (bottomBtn) bottomBtn.style.display = 'none';
+  el.style.bottom = 'calc(max(20px, env(safe-area-inset-bottom) + 20px))';
 
   // 초기 HTML 한 번만 세팅
   el.innerHTML =
@@ -636,7 +637,7 @@ function startRestTimer(seconds) {
       '<span class="rest-timer-text">탭해서 건너뛰기</span>' +
     '</div>';
 
-  // 컨테이너에 클릭 이벤트 등록 (innerHTML 교체와 무관)
+  // 컨테이너에 클릭 이벤트 등록
   el.onclick = function() {
     dismissRestTimer();
   };
@@ -686,6 +687,7 @@ function dismissRestTimer() {
   if (el) {
     el.innerHTML = '';
     el.onclick = null;
+    el.style.bottom = '';
   }
 
   // FINISH WORKOUT 버튼 다시 표시
