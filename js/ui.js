@@ -425,7 +425,7 @@ function updateBottomButton(state) {
     case 'continue':
       btn.textContent = 'CONTINUE WORKOUT';
       btn.disabled = false;
-      btn.style.background = 'var(--blue)';
+      btn.style.background = '#e87461';
       btn.style.color = 'var(--white)';
       // 길게 누르기 이벤트 등록
       setupLongPress(btn);
