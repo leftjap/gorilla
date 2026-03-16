@@ -427,6 +427,41 @@ function getMonthPartVolumes(ym) {
 }
 
 /**
+ * 최근 N개월의 월별 총 볼륨 반환 (현재 월 포함)
+ * @param {number} count — 몇 개월 (기본 6)
+ * @param {string} baseYM — 기준 월 (기본 현재 월)
+ * @returns [{ ym: '2026-03', month: 3, volume: 12000, isCurrent: true }, ...]
+ */
+function getRecentMonthlyVolumes(count, baseYM) {
+  count = count || 6;
+  var base = baseYM || getYM();
+  var parts = base.split('-').map(Number);
+  var baseY = parts[0];
+  var baseM = parts[1];
+
+  var result = [];
+
+  for (var i = count - 1; i >= 0; i--) {
+    var m = baseM - i;
+    var y = baseY;
+    while (m < 1) { m += 12; y -= 1; }
+    while (m > 12) { m -= 12; y += 1; }
+
+    var ym = y + '-' + String(m).padStart(2, '0');
+    var summary = getMonthSummary(ym);
+
+    result.push({
+      ym: ym,
+      month: m,
+      volume: summary.volume || 0,
+      isCurrent: ym === base
+    });
+  }
+
+  return result;
+}
+
+/**
  * 특정 월의 날짜별 PR 여부 맵 반환
  * @returns { '2026-03-05': true, ... }
  */

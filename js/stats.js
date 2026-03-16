@@ -25,8 +25,8 @@ function renderStatsScreen() {
   // 히어로 랭킹
   html += renderStatsHeroRanking();
 
-  // 월별 볼륨 차트 (작업지시서 C에서 추가)
-  html += '<div id="statsMonthlyChart"></div>';
+  // 월별 볼륨 차트
+  html += renderStatsMonthlyChart();
 
   // 하단 여백
   html += '<div style="height:40px"></div>';
@@ -221,6 +221,51 @@ function renderStatsHeroRanking() {
   }
 
   html += '</div>';
+  return html;
+}
+
+// ══ 월별 볼륨 바 차트 ══
+function renderStatsMonthlyChart() {
+  var data = getRecentMonthlyVolumes(6, _statsYM);
+
+  // 모든 월의 볼륨이 0이면 표시하지 않음
+  var hasData = false;
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].volume > 0) { hasData = true; break; }
+  }
+  if (!hasData) return '';
+
+  // 최대값 구하기 (바 높이 비율 계산용)
+  var maxVol = 0;
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].volume > maxVol) maxVol = data[i].volume;
+  }
+
+  var html =
+    '<div class="stats-monthly">' +
+      '<div class="stats-monthly-title">월별 볼륨</div>' +
+      '<div class="stats-monthly-chart">';
+
+  for (var i = 0; i < data.length; i++) {
+    var d = data[i];
+    var heightPct = maxVol > 0 ? Math.max((d.volume / maxVol) * 100, d.volume > 0 ? 4 : 0) : 0;
+    var barClass = 'stats-monthly-bar' + (d.isCurrent ? ' current' : '');
+    var volLabel = d.volume > 0 ? formatNum(d.volume) : '';
+
+    html +=
+      '<div class="stats-monthly-col">' +
+        '<div class="stats-monthly-val">' + volLabel + '</div>' +
+        '<div class="stats-monthly-bar-wrap">' +
+          '<div class="' + barClass + '" style="height:' + heightPct + '%"></div>' +
+        '</div>' +
+        '<div class="stats-monthly-label">' + d.month + '월</div>' +
+      '</div>';
+  }
+
+  html +=
+      '</div>' +
+    '</div>';
+
   return html;
 }
 

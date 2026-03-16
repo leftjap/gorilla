@@ -1268,6 +1268,73 @@ input {
   color: var(--icon-inactive);
 }
 
+/* 월별 볼륨 바 차트 */
+.stats-monthly {
+  padding: 8px 20px 24px 20px;
+}
+
+.stats-monthly-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 20px;
+}
+
+.stats-monthly-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  height: 180px;
+}
+
+.stats-monthly-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.stats-monthly-val {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 6px;
+  height: 16px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-monthly-bar-wrap {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.stats-monthly-bar {
+  width: 100%;
+  max-width: 40px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--light-gray);
+  transition: height 0.3s ease;
+}
+
+.stats-monthly-bar.current {
+  background: #e87461;
+}
+
+.stats-monthly-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray);
+  margin-top: 8px;
+  height: 18px;
+  line-height: 18px;
+}
+
 /* ── 설정 화면 ── */
 .settings-content {
   padding-bottom: calc(40px + max(0px, env(safe-area-inset-bottom)));
