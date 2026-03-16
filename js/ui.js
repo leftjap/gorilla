@@ -374,6 +374,31 @@ function renderWeekCal() {
   html += '</div>';
 
   el.innerHTML = html;
+
+  // ── 주간 캘린더 롱프레스 바인딩 (기록 삭제) ──
+  var weekDays = el.querySelectorAll('.week-day:not(.future)');
+  for (var wi = 0; wi < weekDays.length; wi++) {
+    (function(dayEl, idx) {
+      var d = new Date(weekStart);
+      d.setDate(d.getDate() + idx);
+      var dateStr = getLocalYMD(d);
+
+      bindLongPress(dayEl, function() {
+        var daySessions = getSessionsByDate(dateStr);
+        if (daySessions.length === 0) return;
+
+        showConfirm('기록을 모두 삭제하시겠습니까?', function(confirmed) {
+          if (confirmed) {
+            if (typeof deleteSessionsByDate === 'function') {
+              deleteSessionsByDate(dateStr);
+            }
+            if (typeof syncToServer === 'function') syncToServer(null, true);
+            renderHome();
+          }
+        });
+      }, 600);
+    })(weekDays[wi], wi);
+  }
 }
 
 function selectWeekDate(dateStr) {
