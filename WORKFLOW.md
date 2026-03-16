@@ -397,10 +397,11 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `startWorkout()` — 선택 확정, 세션 생성, 타이머 시작
 
 **종목/세트:**
-- `renderExerciseCards()` — 네비게이션 바 + 현재 종목 카드 렌더
-- `renderExerciseNav()` — 종목 네비게이션 버튼바
+- `renderExerciseCards()` — 현재 종목 네비 + 동기부여 문구 + 세트 카드 + 다음 종목 목록 렌더
+- `renderExerciseNav()` — 현재 활성 종목만 표시
 - `switchExercise(exIdx)` — 종목 전환
 - `renderExerciseCard(exIdx)` — 단일 종목 카드 (동기부여 문구 + 진행 바 + 세트)
+- `renderUpcomingExercises()` — 현재 종목 제외 나머지 종목 버튼 목록 (세트 카드 아래 배치)
 - `renderSetProgress(todayVol, lastVol, lastSetCount, doneCount)` — 세트 진행 바
 - `renderSetRow(exIdx, setIdx)` — 세트 행
 - `toggleExCard(exIdx)` — 카드 접기/펼치기
@@ -490,9 +491,10 @@ onBottomBtnClick() → startWorkoutFlow() → showScreen('workout')
 → [사용자가 부위 태그 탭] togglePart(partId)
 → [START 버튼] startWorkout() → _currentSession 생성 + startWorkoutTimer()
 → renderExerciseCards()
-  → renderExerciseNav()
+  → renderExerciseNav() (현재 종목만)
   → renderExerciseCard(_currentExerciseIndex)
     → renderSetProgress() + renderSetRow() × N
+  → renderUpcomingExercises() (나머지 종목 목록)
 → [사용자가 세트 체크] completeSet(exIdx, setIdx)
   → checkPR() → PR이면 showPRFlash()
   → startRestTimer(seconds) → renderRestTimer()

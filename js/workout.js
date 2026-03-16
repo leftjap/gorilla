@@ -202,11 +202,14 @@ function renderExerciseCards() {
 
   var html = '';
 
-  // 종목 네비게이션 버튼바 (상단)
+  // 1. 현재 종목 네비게이션 (활성 종목만)
   html += renderExerciseNav();
 
-  // 현재 종목 카드 (동기부여 문구 포함, 하단)
+  // 2. 동기부여 문구 + 현재 종목 세트 카드
   html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
+
+  // 3. 앞으로 해야할 운동 종목 목록
+  html += renderUpcomingExercises();
 
   // 하단 고정 버튼과 겹치지 않도록 여백
   html += '<div style="height:80px"></div>';
@@ -216,35 +219,24 @@ function renderExerciseCards() {
 
 // ══ 종목 네비게이션 버튼바 ══
 function renderExerciseNav() {
-  var html = '<div class="exercise-nav">';
+  var exData = _currentSession.exercises[_currentExerciseIndex];
+  var meta = getExercise(exData.exerciseId);
+  var name = meta ? meta.name : exData.exerciseId;
 
-  for (var i = 0; i < _currentSession.exercises.length; i++) {
-    var exData = _currentSession.exercises[i];
-    var meta = getExercise(exData.exerciseId);
-    var name = meta ? meta.name : exData.exerciseId;
-
-    // 모든 세트 완료 여부
-    var allDone = true;
-    for (var j = 0; j < exData.sets.length; j++) {
-      if (!exData.sets[j].done) {
-        allDone = false;
-        break;
-      }
+  // 모든 세트 완료 여부
+  var allDone = true;
+  for (var j = 0; j < exData.sets.length; j++) {
+    if (!exData.sets[j].done) {
+      allDone = false;
+      break;
     }
-
-    var btnClass = 'ex-nav-btn';
-    if (i === _currentExerciseIndex) {
-      btnClass += ' active';
-    } else if (allDone) {
-      btnClass += ' done';
-    }
-
-    var btnContent = name;
-    if (allDone) btnContent = '✓ ' + name;
-
-    html += '<button class="' + btnClass + '" onclick="switchExercise(' + i + ')">' + btnContent + '</button>';
   }
 
+  var btnClass = 'ex-nav-btn active';
+  var btnContent = allDone ? '✓ ' + name : name;
+
+  var html = '<div class="exercise-nav">';
+  html += '<button class="' + btnClass + '">' + btnContent + '</button>';
   html += '</div>';
   return html;
 }
@@ -291,11 +283,11 @@ function renderExerciseCard(exIdx) {
 
   var cardClass = 'ex-card' + (allDone ? ' ex-done' : '');
 
-  // 동기부여 문구 (카드 밖 독립 텍스트)
+  // 동기부여 문구 (카드 밖 독립 영역, 홈 요약과 같은 폰트 사이즈)
   var motivateHtml = '';
   if (!isCardio) {
     if (!lastSets || lastSets.length === 0) {
-      motivateHtml = '<div class="ex-motivate-msg">첫 기록을 만들어보세요!</div>';
+      motivateHtml = '<div class="ex-motivate-msg"><span class="ex-motivate-main">첫 기록을 만들어보세요!</span></div>';
     } else {
       var sessions = getSessions();
       var lastDate = '';
@@ -312,8 +304,8 @@ function renderExerciseCard(exIdx) {
       }
       var dateDisplay = lastDate ? formatDate(lastDate) : '';
       motivateHtml = '<div class="ex-motivate-msg">' +
-        (dateDisplay ? dateDisplay + ' ' : '') +
-        lastSetCount + '세트 총 <strong>' + formatNum(lastVol) + 'kg</strong>을 들었어요' +
+        (dateDisplay ? '<span class="ex-motivate-sub">' + dateDisplay + '</span>' : '') +
+        '<span class="ex-motivate-main">' + lastSetCount + '세트 총 <strong>' + formatNum(lastVol) + 'kg</strong>을 들었어요</span>' +
       '</div>';
     }
   }
@@ -345,7 +337,7 @@ function renderExerciseCard(exIdx) {
     // 진행 바
     html += renderSetProgress(todayVol, lastVol, lastSetCount, doneCount);
 
-    // 세트 테이블: 완료된 세트 + 다음 1개만
+    // 세트 테이블
     html +=
       '<table class="set-table">' +
         '<thead><tr>' +
@@ -365,12 +357,6 @@ function renderExerciseCard(exIdx) {
         html += renderSetRow(exIdx, s);
         nextShown = true;
       }
-      // 나머지 미완료 세트는 렌더하지 않음
-    }
-
-    // 모든 기존 세트가 완료되었으면 새 세트 1개를 자동 추가하여 표시
-    if (!nextShown && allDone) {
-      // 아직 추가하지 않음 — 사용자가 체크하면 completeSet에서 처리
     }
 
     html +=
@@ -379,6 +365,45 @@ function renderExerciseCard(exIdx) {
   }
 
   html += '</div></div>';
+  return html;
+}
+
+function renderUpcomingExercises() {
+  if (!_currentSession) return '';
+
+  var buttons = [];
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    if (i === _currentExerciseIndex) continue; // 현재 종목 제외
+
+    var exData = _currentSession.exercises[i];
+    var meta = getExercise(exData.exerciseId);
+    var name = meta ? meta.name : exData.exerciseId;
+
+    // 모든 세트 완료 여부
+    var allDone = true;
+    for (var j = 0; j < exData.sets.length; j++) {
+      if (!exData.sets[j].done) {
+        allDone = false;
+        break;
+      }
+    }
+
+    var btnClass = 'ex-nav-btn';
+    if (allDone) btnClass += ' done';
+
+    var btnContent = allDone ? '✓ ' + name : name;
+
+    buttons.push('<button class="' + btnClass + '" onclick="switchExercise(' + i + ')">' + btnContent + '</button>');
+  }
+
+  if (buttons.length === 0) return '';
+
+  var html = '<div class="upcoming-exercises">';
+  html += '<div class="upcoming-exercises-title">다음 종목</div>';
+  html += '<div class="upcoming-exercises-list">';
+  html += buttons.join('');
+  html += '</div>';
+  html += '</div>';
   return html;
 }
 
