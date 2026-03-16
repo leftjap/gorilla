@@ -491,7 +491,7 @@ input {
   overflow-x: auto;
   padding: 12px 16px;
   background: var(--white);
-  margin: 12px 0;
+  margin: 16px 0 0 0;
   border-radius: 14px;
   -webkit-overflow-scrolling: touch;
 }
@@ -615,42 +615,6 @@ input {
 .ex-motivate-main strong {
   color: #e87461;
   font-weight: 800;
-}
-
-/* ── 다음 종목 목록 ── */
-.upcoming-exercises {
-  margin-top: 16px;
-  padding: 0;
-}
-
-.upcoming-exercises-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--icon-inactive);
-  margin-bottom: 8px;
-  padding: 0 4px;
-}
-
-.upcoming-exercises-list {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 0;
-  -webkit-overflow-scrolling: touch;
-}
-
-.upcoming-exercises-list::-webkit-scrollbar {
-  height: 4px;
-}
-
-.upcoming-exercises-list::-webkit-scrollbar-track {
-  background: var(--light-gray);
-  border-radius: 2px;
-}
-
-.upcoming-exercises-list::-webkit-scrollbar-thumb {
-  background: var(--border-gray);
-  border-radius: 2px;
 }
 
 .ex-card-check {
