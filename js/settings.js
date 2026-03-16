@@ -41,11 +41,29 @@ function renderSettings() {
     '</div>';
 
   // 동기화 섹션
+  var lastSync = getLastSyncTime();
+  var syncTimeText = formatSyncTime(lastSync);
+  var onlineStatus = navigator.onLine ? '온라인' : '오프라인';
+  var onlineClass = navigator.onLine ? 'online' : 'offline';
+
   html +=
     '<div class="settings-sync-section">' +
-      '<div class="settings-sync-title">데이터 동기화</div>' +
-      '<button class="settings-sync-btn" onclick="syncToServer()">서버에 저장</button>' +
-      '<button class="settings-sync-btn" onclick="syncFromServer()">서버에서 불러오기</button>' +
+      '<div class="settings-sync-header">' +
+        '<div class="settings-sync-title">데이터 동기화</div>' +
+        '<div class="settings-sync-status-row">' +
+          '<span class="settings-sync-dot ' + onlineClass + '"></span>' +
+          '<span class="settings-sync-status-text">' + onlineStatus + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="settings-sync-time">마지막 동기화: ' + syncTimeText + '</div>' +
+      '<div class="settings-sync-btns">' +
+        '<button class="settings-sync-btn" id="syncSaveBtn" onclick="onManualSyncSave()">' +
+          '<span class="settings-sync-btn-icon">↑</span> 서버에 저장' +
+        '</button>' +
+        '<button class="settings-sync-btn" id="syncLoadBtn" onclick="onManualSyncLoad()">' +
+          '<span class="settings-sync-btn-icon">↓</span> 서버에서 불러오기' +
+        '</button>' +
+      '</div>' +
     '</div>';
 
   // 종목 추가 폼 (숨김)
@@ -249,4 +267,36 @@ function closeAddExerciseForm() {
     el.innerHTML = '';
   }
   _selectedEquipment = 'barbell';
+}
+
+// ══ 수동 동기화 (설정 화면) ══
+function onManualSyncSave() {
+  var btn = document.getElementById('syncSaveBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="settings-sync-btn-icon spin">↑</span> 저장 중...';
+  }
+  syncToServer(function(success) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="settings-sync-btn-icon">↑</span> 서버에 저장';
+    }
+    // 동기화 시각 갱신
+    renderSettings();
+  }, false); // silent=false → 토스트 표시
+}
+
+function onManualSyncLoad() {
+  var btn = document.getElementById('syncLoadBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="settings-sync-btn-icon spin">↓</span> 불러오는 중...';
+  }
+  syncFromServer(function(success) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="settings-sync-btn-icon">↓</span> 서버에서 불러오기';
+    }
+    renderSettings();
+  }, false);
 }

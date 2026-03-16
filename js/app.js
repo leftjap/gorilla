@@ -11,15 +11,15 @@ function init() {
   _currentYM = getYM();
   updateMonthTitle();
 
-  // 메인 화면 표시 (동기화 전 일단 로컬 데이터로)
+  // 메인 화면 표시 (로컬 데이터로 즉시)
   showScreen('home');
 
-  // 서버에서 데이터 동기화 → 완료 후 화면 갱신
+  // 서버 동기화 — silent 모드 (성공 시 토스트 없음, 실패 시 인라인 배너)
   syncFromServer(function(success) {
     if (success) {
       showScreen('home');
     }
-  });
+  }, true);
 }
 
 window.onload = function() {
