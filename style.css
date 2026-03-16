@@ -536,9 +536,9 @@ input {
 }
 
 .ex-nav-btn.done {
-  background: var(--light-gray);
-  color: var(--icon-inactive);
-  border-color: var(--light-gray);
+  background: var(--border-gray);
+  color: var(--gray);
+  border-color: var(--border-gray);
 }
 
 /* ── 종목 카드 ── */
