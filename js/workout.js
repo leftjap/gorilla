@@ -318,7 +318,7 @@ function renderExerciseCard(exIdx) {
     html +=
       '<table class="set-table">' +
         '<thead><tr>' +
-          '<th class="st-set">세트</th>' +
+          '<th class="st-set"></th>' +
           '<th class="st-kg">KG</th>' +
           '<th class="st-reps">횟수</th>' +
           '<th class="st-chk"></th>' +
@@ -397,7 +397,9 @@ function renderSetRow(exIdx, setIdx) {
 
   var html =
     '<tr class="' + rowClass + '" id="setRow-' + exIdx + '-' + setIdx + '">' +
-      '<td><span class="set-num">' + (setIdx + 1) + '</span></td>' +
+      '<td><span class="set-num">' + (setIdx + 1) + '</span>' +
+        (prev ? '<span class="prev-val">&nbsp;</span>' : '') +
+      '</td>' +
       '<td>' +
         '<div class="set-adjust-group">' +
           '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'weight\',-1)">－</button>' +
@@ -429,6 +431,7 @@ function renderSetRow(exIdx, setIdx) {
           'onclick="completeSet(' + exIdx + ',' + setIdx + ')">' +
           '✓' +
         '</button>' +
+        (prev ? '<span class="prev-val">&nbsp;</span>' : '') +
       '</td>' +
     '</tr>';
 
