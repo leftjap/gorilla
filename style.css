@@ -915,7 +915,7 @@ input {
 
 .rest-timer {
   background: var(--white);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 16px;
   text-align: center;
   cursor: pointer;
