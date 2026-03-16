@@ -274,9 +274,53 @@ function renderLastWorkoutCard() {
   var homeChips = el.querySelectorAll('.lw-ex-chip');
   for (var ci = 0; ci < homeChips.length; ci++) {
     (function(chip) {
+      var exName = chip.querySelector('span') ? chip.querySelector('span').textContent : '';
+
       bindLongPress(chip, function() {
-        // 홈에서는 롱프레스 시 통계 화면으로 이동
-        showScreen('stats');
+        // 해당 날짜의 세션과 종목 찾기
+        var chipSessions = getSessionsByDate(displayDate);
+        var targetSessionId = '';
+        var targetExerciseId = '';
+
+        for (var si = 0; si < chipSessions.length; si++) {
+          for (var ei = 0; ei < chipSessions[si].exercises.length; ei++) {
+            var exInfo = getExercise(chipSessions[si].exercises[ei].exerciseId);
+            if (exInfo && exInfo.name === exName) {
+              targetSessionId = chipSessions[si].id;
+              targetExerciseId = chipSessions[si].exercises[ei].exerciseId;
+              break;
+            }
+          }
+          if (targetSessionId) break;
+        }
+
+        if (!targetSessionId || !targetExerciseId) return;
+
+        showActionSheet(exName, [
+          {
+            text: '기록 수정',
+            onClick: function() {
+              if (typeof enterEditMode === 'function') {
+                enterEditMode(targetSessionId, targetExerciseId);
+              }
+            }
+          },
+          {
+            text: '이 종목 삭제',
+            cls: 'destructive',
+            onClick: function() {
+              showConfirm('기록을 삭제하시겠습니까?', function(confirmed) {
+                if (confirmed) {
+                  if (typeof deleteExerciseFromSession === 'function') {
+                    deleteExerciseFromSession(targetSessionId, targetExerciseId);
+                  }
+                  if (typeof syncToServer === 'function') syncToServer(null, true);
+                  renderLastWorkoutCard();
+                }
+              });
+            }
+          }
+        ]);
       }, 600);
     })(homeChips[ci]);
   }
