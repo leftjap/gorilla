@@ -836,32 +836,6 @@ function renderWorkoutSummary(session) {
     tagNames.push(p ? p.name : session.tags[i]);
   }
 
-  // PR 목록
-  var prHtml = '';
-  for (var i = 0; i < session.exercises.length; i++) {
-    var ex = session.exercises[i];
-    var meta = getExercise(ex.exerciseId);
-    for (var j = 0; j < ex.sets.length; j++) {
-      if (ex.sets[j].isPR) {
-        prHtml +=
-          '<div class="summary-pr">' +
-            '<span class="summary-pr-icon">🏆</span>' +
-            '<span class="summary-pr-name">' + (meta ? meta.name : '') + '</span>' +
-            '<span class="summary-pr-val">' + ex.sets[j].weight + 'kg × ' + ex.sets[j].reps + '회</span>' +
-          '</div>';
-      }
-    }
-  }
-
-  // 지난번 비교
-  var lastSession = getLastSimilarSession(session.tags);
-  var volDiff = '';
-  if (lastSession && lastSession.id !== session.id) {
-    var diff = session.totalVolumeExWarmup - (lastSession.totalVolumeExWarmup || 0);
-    if (diff > 0) volDiff = '<span class="vol-up">+' + formatNum(diff) + 'kg ↑</span>';
-    else if (diff < 0) volDiff = '<span class="vol-down">' + formatNum(diff) + 'kg ↓</span>';
-  }
-
   // 종목 수, 세트 수
   var exCount = session.exercises.length;
   var setCount = 0;
@@ -871,28 +845,78 @@ function renderWorkoutSummary(session) {
     }
   }
 
+  // 지난번 비교
+  var lastSession = getLastSimilarSession(session.tags);
+  var volDiffHtml = '';
+  if (lastSession && lastSession.id !== session.id) {
+    var diff = (session.totalVolumeExWarmup || 0) - (lastSession.totalVolumeExWarmup || 0);
+    if (diff > 0) {
+      volDiffHtml = '<span class="summary-vol-diff up">+' + formatNum(diff) + 'kg</span>';
+    } else if (diff < 0) {
+      volDiffHtml = '<span class="summary-vol-diff down">' + formatNum(diff) + 'kg</span>';
+    }
+  }
+
+  // PR 목록
+  var prHtml = '';
+  var prCount = 0;
+  for (var i = 0; i < session.exercises.length; i++) {
+    var ex = session.exercises[i];
+    var meta = getExercise(ex.exerciseId);
+    for (var j = 0; j < ex.sets.length; j++) {
+      if (ex.sets[j].isPR) {
+        prCount++;
+        prHtml +=
+          '<div class="summary-pr-item">' +
+            '<span class="summary-pr-badge">PR</span>' +
+            '<span class="summary-pr-name">' + (meta ? meta.name : '') + '</span>' +
+            '<span class="summary-pr-val">' + ex.sets[j].weight + 'kg × ' + ex.sets[j].reps + '회</span>' +
+          '</div>';
+      }
+    }
+  }
+
+  // 날짜 표시
+  var dateDisplay = formatDate(session.date);
+
   var html =
     '<div class="workout-summary">' +
-      '<div class="summary-title">운동 완료! 💪</div>' +
-      '<div class="summary-tags">' + tagNames.join(' · ') + '</div>' +
-      '<div class="summary-stats">' +
-        '<div class="summary-stat">' +
-          '<div class="summary-stat-num">' + formatDuration(session.durationMin) + '</div>' +
-          '<div class="summary-stat-label">운동 시간</div>' +
-        '</div>' +
-        '<div class="summary-stat">' +
-          '<div class="summary-stat-num">' + formatNum(session.totalVolumeExWarmup) + '<small>kg</small></div>' +
-          volDiff +
-          '<div class="summary-stat-label">총 볼륨</div>' +
-        '</div>' +
-        '<div class="summary-stat">' +
-          '<div class="summary-stat-num">' + formatNum(session.totalCalories) + '<small>kcal</small></div>' +
-          '<div class="summary-stat-label">소모 칼로리</div>' +
-        '</div>' +
+      '<div class="summary-top">' +
+        '<div class="summary-title">운동 완료!</div>' +
+        '<div class="summary-date">' + dateDisplay + '</div>' +
+        '<div class="summary-tags">' + tagNames.join(' · ') + '</div>' +
       '</div>' +
-      '<div class="summary-detail">' + exCount + '종목 · ' + setCount + '세트</div>' +
-      (prHtml ? '<div class="summary-prs"><div class="summary-prs-title">개인 기록 갱신</div>' + prHtml + '</div>' : '') +
-      '<div style="height:80px"></div>' +
+      '<div class="summary-stats-card">' +
+        '<div class="summary-stats-header">' + exCount + '종목 · ' + setCount + '세트</div>' +
+        '<div class="summary-stats-row">' +
+          '<div class="summary-stat-item">' +
+            '<div class="summary-stat-val">' + formatDuration(session.durationMin) + '</div>' +
+            '<div class="summary-stat-label">운동 시간</div>' +
+          '</div>' +
+          '<div class="summary-stat-divider"></div>' +
+          '<div class="summary-stat-item">' +
+            '<div class="summary-stat-val">' + formatNum(session.totalVolumeExWarmup) + '<small>kg</small></div>' +
+            volDiffHtml +
+            '<div class="summary-stat-label">총 볼륨</div>' +
+          '</div>' +
+          '<div class="summary-stat-divider"></div>' +
+          '<div class="summary-stat-item">' +
+            '<div class="summary-stat-val">' + formatNum(session.totalCalories) + '<small>kcal</small></div>' +
+            '<div class="summary-stat-label">소모 칼로리</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+  if (prHtml) {
+    html +=
+      '<div class="summary-pr-card">' +
+        '<div class="summary-pr-title">개인 기록 갱신</div>' +
+        '<div class="summary-pr-list">' + prHtml + '</div>' +
+      '</div>';
+  }
+
+  html +=
+      '<div style="height:100px"></div>' +
     '</div>';
 
   container.innerHTML = html;
