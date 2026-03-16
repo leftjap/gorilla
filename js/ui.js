@@ -106,10 +106,12 @@ function renderLastWorkoutCard() {
   var sessions = getSessionsByDate(_selectedWeekDate);
 
   // 선택된 날짜에 세션이 없고 오늘이면 가장 최근 세션 1건
+  var displayDate = _selectedWeekDate;
   if (sessions.length === 0 && _selectedWeekDate === today()) {
     var lastSession = getLastSession();
     if (lastSession) {
       sessions = [lastSession];
+      displayDate = lastSession.date;
     }
   }
 
@@ -132,82 +134,116 @@ function renderLastWorkoutCard() {
     return;
   }
 
-  // 가장 최근 1건만 카드로 표시 (startTime 기준 내림차순)
-  sessions.sort(function(a, b) { return (b.startTime || 0) - (a.startTime || 0); });
-  var s = sessions[0];
-  var remainCount = sessions.length - 1;
+  // ── 병합: 볼륨/칼로리/시간 합산 ──
+  var totalVolume = 0;
+  var totalCalories = 0;
+  var totalDuration = 0;
 
-  // 부위 태그
+  // 부위 태그 합집합 (순서 유지)
+  var tagSet = {};
+  var tagList = [];
+
+  // 종목별 세트 합산 {exerciseId: {doneSets, hasPR, totalMin(유산소)}}
+  var exMap = {};
+  var exOrder = []; // 종목 등장 순서
+
+  for (var si = 0; si < sessions.length; si++) {
+    var s = sessions[si];
+    totalVolume += s.totalVolume || 0;
+    totalCalories += s.totalCalories || 0;
+    totalDuration += s.durationMin || 0;
+
+    // 태그 합집합
+    for (var ti = 0; ti < s.tags.length; ti++) {
+      if (!tagSet[s.tags[ti]]) {
+        tagSet[s.tags[ti]] = true;
+        tagList.push(s.tags[ti]);
+      }
+    }
+
+    // 종목별 합산
+    for (var ei = 0; ei < s.exercises.length; ei++) {
+      var ex = s.exercises[ei];
+      var exId = ex.exerciseId;
+
+      if (!exMap[exId]) {
+        exMap[exId] = { doneSets: 0, hasPR: false, totalMin: 0 };
+        exOrder.push(exId);
+      }
+
+      for (var ji = 0; ji < ex.sets.length; ji++) {
+        var set = ex.sets[ji];
+        if (set.done) {
+          var exInfo = getExercise(exId);
+          if (exInfo && exInfo.equipment === 'cardio') {
+            exMap[exId].totalMin += set.reps || 0;
+          }
+          exMap[exId].doneSets++;
+        }
+        if (set.isPR) {
+          exMap[exId].hasPR = true;
+        }
+      }
+    }
+  }
+
+  // ── 렌더 ──
+
+  // 부위 태그 HTML
   var tagsHtml = '';
-  for (var i = 0; i < s.tags.length; i++) {
-    var part = getBodyPart(s.tags[i]);
-    var name = part ? part.name : s.tags[i];
+  for (var i = 0; i < tagList.length; i++) {
+    var part = getBodyPart(tagList[i]);
+    var name = part ? part.name : tagList[i];
     tagsHtml += '<span class="lw-tag">' + name + '</span>';
   }
 
-  // 종목 칩
+  // 종목 칩 HTML (완료 세트가 0인 종목 제외)
   var exChipsHtml = '';
-  for (var i = 0; i < s.exercises.length; i++) {
-    var ex = s.exercises[i];
-    var exInfo = getExercise(ex.exerciseId);
-    if (!exInfo) continue;
+  for (var i = 0; i < exOrder.length; i++) {
+    var exId = exOrder[i];
+    var data = exMap[exId];
+    if (data.doneSets === 0) continue; // 세트 0인 종목 제외
 
-    var doneSets = 0;
-    var hasPR = false;
-    for (var j = 0; j < ex.sets.length; j++) {
-      if (ex.sets[j].done) doneSets++;
-      if (ex.sets[j].isPR) hasPR = true;
-    }
+    var exInfo = getExercise(exId);
+    if (!exInfo) continue;
 
     var setsLabel = '';
     if (exInfo.equipment === 'cardio') {
-      var totalMin = 0;
-      for (var m = 0; m < ex.sets.length; m++) {
-        if (ex.sets[m].done) totalMin += ex.sets[m].reps || 0;
-      }
-      setsLabel = totalMin + '분';
+      setsLabel = data.totalMin + '분';
     } else {
-      setsLabel = doneSets + '세트';
+      setsLabel = data.doneSets + '세트';
     }
 
     exChipsHtml +=
       '<div class="lw-ex-chip">' +
         '<span>' + exInfo.name + '</span>' +
         '<span class="lw-ex-sets">' + setsLabel + '</span>' +
-        (hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
+        (data.hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
       '</div>';
   }
 
   var html =
     '<div class="lw-card">' +
       '<div class="lw-header">' +
-        '<span class="lw-date">' + formatDate(s.date) + '</span>' +
+        '<span class="lw-date">' + formatDate(displayDate) + '</span>' +
         '<div class="lw-tags">' + tagsHtml + '</div>' +
       '</div>' +
       '<div class="lw-stats">' +
         '<div class="lw-stat">' +
-          '<span class="lw-stat-num">' + formatNum(s.totalVolume || 0) + '<small>kg</small></span>' +
+          '<span class="lw-stat-num">' + formatNum(totalVolume) + '<small>kg</small></span>' +
           '<span class="lw-stat-label">볼륨</span>' +
         '</div>' +
         '<div class="lw-stat">' +
-          '<span class="lw-stat-num">' + formatNum(s.totalCalories || 0) + '<small>kcal</small></span>' +
+          '<span class="lw-stat-num">' + formatNum(totalCalories) + '<small>kcal</small></span>' +
           '<span class="lw-stat-label">칼로리</span>' +
         '</div>' +
         '<div class="lw-stat">' +
-          '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
+          '<span class="lw-stat-num">' + totalDuration + '<small>분</small></span>' +
           '<span class="lw-stat-label">시간</span>' +
         '</div>' +
       '</div>' +
-      '<div class="lw-exercises">' + exChipsHtml + '</div>';
-
-  if (remainCount > 0) {
-    html +=
-      '<div class="lw-more" onclick="openBottomSheet(\'' + s.date + '\')">' +
-        '외 ' + remainCount + '건 더보기' +
-      '</div>';
-  }
-
-  html += '</div>';
+      '<div class="lw-exercises">' + exChipsHtml + '</div>' +
+    '</div>';
 
   el.innerHTML = html;
 }
