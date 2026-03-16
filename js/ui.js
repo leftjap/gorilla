@@ -106,6 +106,17 @@ function renderLastWorkoutCard() {
     }
   }
 
+  // 세션 ID 기준 중복 제거
+  var seen = {};
+  var uniqueSessions = [];
+  for (var i = 0; i < sessions.length; i++) {
+    if (!seen[sessions[i].id]) {
+      seen[sessions[i].id] = true;
+      uniqueSessions.push(sessions[i]);
+    }
+  }
+  sessions = uniqueSessions;
+
   if (sessions.length === 0) {
     el.innerHTML =
       '<div class="lw-empty">' +
