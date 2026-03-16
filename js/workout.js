@@ -202,11 +202,11 @@ function renderExerciseCards() {
 
   var html = '';
 
-  // 현재 종목 카드만 렌더링
-  html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
-
   // 종목 네비게이션 버튼바
   html += renderExerciseNav();
+
+  // 현재 종목 카드만 렌더링 (동기부여 문구 포함)
+  html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
 
   // 하단 고정 버튼과 겹치지 않도록 여백만
   html += '<div style="height:80px"></div>';
