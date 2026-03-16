@@ -290,9 +290,7 @@ function renderExerciseCard(exIdx) {
     }
   }
 
-  var cardClass = 'ex-card' + (allDone ? ' ex-done' : '');
-
-  // 동기부여 문구 HTML (카드 바디 안에 들어감)
+  // 동기부여 문구 HTML
   var motivateHtml = '';
   if (!isCardio) {
     if (!lastSets || lastSets.length === 0) {
@@ -319,48 +317,54 @@ function renderExerciseCard(exIdx) {
     }
   }
 
-  // 1. 카드헤더 (최상단)
-  var html =
-    '<div class="' + cardClass + '">' +
-      '<div class="ex-card-header" onclick="toggleExCard(' + exIdx + ')">' +
-        '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
-        '<div class="ex-card-info">' +
-          '<div class="ex-card-name">' + meta.name + '</div>' +
-        '</div>' +
-        (allDone ? '<span class="ex-card-check">✓</span>' : '') +
-      '</div>' +
-      '<div class="ex-card-body" id="exBody-' + exIdx + '">';
+  var html = '';
 
-  // 2. 동기부여 문구 + 프로그레스바 (카드헤더 아래)
+  // 1. 카드헤더 (박스 밖, 최상단)
+  html +=
+    '<div class="ex-card-header-standalone">' +
+      '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
+      '<div class="ex-card-info">' +
+        '<div class="ex-card-name">' + meta.name + '</div>' +
+      '</div>' +
+      (allDone ? '<span class="ex-card-check">✓</span>' : '') +
+    '</div>';
+
+  // 2. 동기부여 문구 + 프로그레스바 (박스 밖)
   html += motivateHtml;
 
   if (isCardio) {
-    var curMin = exData.sets[0] ? exData.sets[0].reps : 0;
+    // 유산소: 박스 안에 입력
     html +=
-      '<div class="cardio-input">' +
-        '<input type="number" class="cardio-min-input" id="cardioMin-' + exIdx + '" ' +
-          'value="' + (curMin || '') + '" placeholder="분" inputmode="numeric">' +
-        '<span class="cardio-label">분</span>' +
-        '<button class="set-check-btn' + (exData.sets[0] && exData.sets[0].done ? ' done' : '') + '" ' +
-          'onclick="completeCardio(' + exIdx + ')">' +
-          '✓' +
-        '</button>' +
+      '<div class="ex-card' + (allDone ? ' ex-done' : '') + '">' +
+        '<div class="ex-card-body">' +
+          '<div class="cardio-input">' +
+            '<input type="number" class="cardio-min-input" id="cardioMin-' + exIdx + '" ' +
+              'value="' + (exData.sets[0] ? exData.sets[0].reps : '') + '" placeholder="분" inputmode="numeric">' +
+            '<span class="cardio-label">분</span>' +
+            '<button class="set-check-btn' + (exData.sets[0] && exData.sets[0].done ? ' done' : '') + '" ' +
+              'onclick="completeCardio(' + exIdx + ')">' +
+              '✓' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
       '</div>';
   } else {
-    // 프로그레스바 (동기부여 문구 바로 아래)
+    // 프로그레스바 (박스 밖)
     html += renderSetProgress(todayVol, lastVol, lastSetCount, doneCount);
 
-    // 3. 세트 테이블
+    // 3. 세트 테이블 (박스 안)
     html +=
-      '<table class="set-table">' +
-        '<thead><tr>' +
-          '<th class="st-set"></th>' +
-          '<th class="st-kg">KG</th>' +
-          '<th class="st-gap"></th>' +
-          '<th class="st-reps">횟수</th>' +
-          '<th class="st-chk"></th>' +
-        '</tr></thead>' +
-        '<tbody>';
+      '<div class="ex-card' + (allDone ? ' ex-done' : '') + '">' +
+        '<div class="ex-card-body" id="exBody-' + exIdx + '">' +
+          '<table class="set-table">' +
+            '<thead><tr>' +
+              '<th class="st-set"></th>' +
+              '<th class="st-kg">KG</th>' +
+              '<th class="st-gap"></th>' +
+              '<th class="st-reps">횟수</th>' +
+              '<th class="st-chk"></th>' +
+            '</tr></thead>' +
+            '<tbody>';
 
     var nextShown = false;
     for (var s = 0; s < exData.sets.length; s++) {
@@ -373,11 +377,12 @@ function renderExerciseCard(exIdx) {
     }
 
     html +=
-        '</tbody>' +
-      '</table>';
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>';
   }
 
-  html += '</div></div>';
   return html;
 }
 
