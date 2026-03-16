@@ -291,7 +291,34 @@ function renderExerciseCard(exIdx) {
 
   var cardClass = 'ex-card' + (allDone ? ' ex-done' : '');
 
-  var html =
+  // 동기부여 문구 (카드 밖 독립 텍스트)
+  var motivateHtml = '';
+  if (!isCardio) {
+    if (!lastSets || lastSets.length === 0) {
+      motivateHtml = '<div class="ex-motivate-msg">첫 기록을 만들어보세요!</div>';
+    } else {
+      var sessions = getSessions();
+      var lastDate = '';
+      for (var si = sessions.length - 1; si >= 0; si--) {
+        var sess = sessions[si];
+        if (sess.id === _currentSession.id) continue;
+        for (var ei = 0; ei < sess.exercises.length; ei++) {
+          if (sess.exercises[ei].exerciseId === meta.id) {
+            lastDate = sess.date;
+            break;
+          }
+        }
+        if (lastDate) break;
+      }
+      var dateDisplay = lastDate ? formatDate(lastDate) : '';
+      motivateHtml = '<div class="ex-motivate-msg">' +
+        (dateDisplay ? dateDisplay + ' ' : '') +
+        lastSetCount + '세트 총 <strong>' + formatNum(lastVol) + 'kg</strong>을 들었어요' +
+      '</div>';
+    }
+  }
+
+  var html = motivateHtml +
     '<div class="' + cardClass + '">' +
       '<div class="ex-card-header" onclick="toggleExCard(' + exIdx + ')">' +
         '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
@@ -315,29 +342,6 @@ function renderExerciseCard(exIdx) {
         '</button>' +
       '</div>';
   } else {
-    // 동기부여 문구
-    html += (function() {
-      if (!lastSets || lastSets.length === 0) return '<div class="ex-card-motivate">첫 기록을 만들어보세요!</div>';
-      var sessions = getSessions();
-      var lastDate = '';
-      for (var si = sessions.length - 1; si >= 0; si--) {
-        var sess = sessions[si];
-        if (sess.id === _currentSession.id) continue;
-        for (var ei = 0; ei < sess.exercises.length; ei++) {
-          if (sess.exercises[ei].exerciseId === meta.id) {
-            lastDate = sess.date;
-            break;
-          }
-        }
-        if (lastDate) break;
-      }
-      var dateDisplay = lastDate ? formatDate(lastDate) : '';
-      return '<div class="ex-card-motivate">' +
-        (dateDisplay ? dateDisplay + ' ' : '') +
-        lastSetCount + '세트 총 <strong>' + formatNum(lastVol) + 'kg</strong>을 들었어요' +
-      '</div>';
-    })();
-
     // 진행 바
     html += renderSetProgress(todayVol, lastVol, lastSetCount, doneCount);
 
