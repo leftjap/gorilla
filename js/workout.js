@@ -51,7 +51,7 @@ function renderPartSelector() {
 
   html +=
       '</div>' +
-      '<div class="part-selected-order" id="partOrder"></div>' +
+      '<div class="workout-timeline" id="partOrder"></div>' +
     '</div>';
 
   container.innerHTML = html;
@@ -70,20 +70,8 @@ function togglePart(partId) {
     if (el) el.classList.add('selected');
   }
 
-  // 순서 표시 업데이트
-  var orderEl = document.getElementById('partOrder');
-  if (orderEl) {
-    if (_selectedParts.length === 0) {
-      orderEl.innerHTML = '';
-    } else {
-      var names = [];
-      for (var i = 0; i < _selectedParts.length; i++) {
-        var p = getBodyPart(_selectedParts[i]);
-        names.push('<span class="part-order-chip" style="background:#6C6C6C">' + (i + 1) + '. ' + p.name + '</span>');
-      }
-      orderEl.innerHTML = names.join(' → ');
-    }
-  }
+  // 타임라인 업데이트
+  renderWorkoutTimeline();
 
   // 하단 버튼 상태 업데이트
   if (_selectedParts.length > 0) {
@@ -91,6 +79,42 @@ function togglePart(partId) {
   } else {
     updateBottomButton('partSelect');
   }
+}
+
+function renderWorkoutTimeline() {
+  var orderEl = document.getElementById('partOrder');
+  if (!orderEl) return;
+
+  if (_selectedParts.length === 0) {
+    orderEl.innerHTML = '<div class="workout-timeline-empty">부위를 선택하면 운동 순서가 표시됩니다</div>';
+    return;
+  }
+
+  var html = '<div class="workout-timeline-title">운동 순서</div><div class="workout-timeline-list">';
+
+  for (var i = 0; i < _selectedParts.length; i++) {
+    var p = getBodyPart(_selectedParts[i]);
+    var exercises = getExercisesByPart(_selectedParts[i]);
+    var exNames = [];
+    for (var j = 0; j < exercises.length; j++) {
+      exNames.push(exercises[j].name);
+    }
+
+    html +=
+      '<div class="workout-timeline-item">' +
+        '<div class="workout-timeline-line">' +
+          '<div class="workout-timeline-num">' + (i + 1) + '</div>' +
+          '<div class="workout-timeline-connector"></div>' +
+        '</div>' +
+        '<div class="workout-timeline-content">' +
+          '<div class="workout-timeline-part">' + p.name + '</div>' +
+          '<div class="workout-timeline-exercises">' + exNames.join(', ') + '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  html += '</div>';
+  orderEl.innerHTML = html;
 }
 
 // ══ 운동 시작 ══

@@ -398,6 +398,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `renderWorkoutScreen()` — 운동 화면 진입 (세션 유무에 따라 부위 선택 또는 세트 입력)
 - `renderPartSelector()` — 부위 태그 선택 UI
 - `togglePart(partId)` — 부위 선택/해제 토글
+- `renderWorkoutTimeline()` — 선택된 부위 세로 타임라인 렌더
 - `startWorkout()` — 선택 확정, 세션 생성, 타이머 시작
 
 **종목/세트:**
