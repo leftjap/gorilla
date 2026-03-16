@@ -367,6 +367,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `hasPROnDate(dateStr)` — 특정 날짜에 PR이 있었는지 확인
 - `getMonthDayVolumes(ym)` — 특정 월의 날짜별 볼륨 맵 반환
 - `getMonthPRDates(ym)` — 특정 월의 날짜별 PR 여부 맵 반환
+- `getMonthPartVolumes(ym)` — 특정 월의 부위별 총 볼륨 랭킹 반환 [{partId, partName, volume, percentage, color}]
 
 ---
 
@@ -456,11 +457,12 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 **역할:** 통계/기록 화면 전체.
 
 **화면 렌더:**
-- `renderStatsScreen()` — 통계 화면 전체 렌더 (헤더 + 요약 + 캘린더 + 운동 카드)
+- `renderStatsScreen()` — 통계 화면 전체 렌더 (헤더 + 요약 + 캘린더 + 운동 카드 + 히어로 랭킹)
 - `renderStatsHeader()` — 헤더 (뒤로가기 + 월 이동)
 - `renderStatsSummary()` — 월간 요약문
 - `renderStatsMonthCal()` — 월간 캘린더 (주간 캘린더 스타일, 볼륨/PR 표시)
 - `renderStatsWorkoutCard()` — 선택된 날짜의 운동 카드 (세션 병합)
+- `renderStatsHeroRanking()` — 부위별 볼륨 랭킹 (1위 한 줄 + 2~7위 2열 그리드)
 
 **월 이동/날짜 선택:**
 - `changeStatsMonth(delta)` — 월 전환
