@@ -292,7 +292,7 @@ function renderExerciseCard(exIdx) {
 
   var cardClass = 'ex-card' + (allDone ? ' ex-done' : '');
 
-  // 동기부여 문구 (카드 밖 독립 영역, 홈 요약과 같은 폰트 사이즈)
+  // 동기부여 문구 HTML (카드 바디 안에 들어감)
   var motivateHtml = '';
   if (!isCardio) {
     if (!lastSets || lastSets.length === 0) {
@@ -319,7 +319,8 @@ function renderExerciseCard(exIdx) {
     }
   }
 
-  var html = motivateHtml +
+  // 1. 카드헤더 (최상단)
+  var html =
     '<div class="' + cardClass + '">' +
       '<div class="ex-card-header" onclick="toggleExCard(' + exIdx + ')">' +
         '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
@@ -329,6 +330,9 @@ function renderExerciseCard(exIdx) {
         (allDone ? '<span class="ex-card-check">✓</span>' : '') +
       '</div>' +
       '<div class="ex-card-body" id="exBody-' + exIdx + '">';
+
+  // 2. 동기부여 문구 + 프로그레스바 (카드헤더 아래)
+  html += motivateHtml;
 
   if (isCardio) {
     var curMin = exData.sets[0] ? exData.sets[0].reps : 0;
@@ -343,10 +347,10 @@ function renderExerciseCard(exIdx) {
         '</button>' +
       '</div>';
   } else {
-    // 진행 바
+    // 프로그레스바 (동기부여 문구 바로 아래)
     html += renderSetProgress(todayVol, lastVol, lastSetCount, doneCount);
 
-    // 세트 테이블
+    // 3. 세트 테이블
     html +=
       '<table class="set-table">' +
         '<thead><tr>' +
