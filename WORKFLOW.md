@@ -294,7 +294,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 **역할:** 앱의 기반 유틸리티. 다른 모든 JS보다 먼저 로드된다.
 
 **전역 상수:**
-- `K` — LocalStorage 키 객체 (sessions, prs, inbody, settings)
+- `K` — LocalStorage 키 객체 (sessions, prs, inbody, settings, customExercises, hiddenExercises)
 - `BODY_PARTS` — 부위 그룹 배열 [{id, name, color, bg}, ...] (chest, back, lower, shoulder, daily, interval)
 - `EQUIPMENT` — 장비 타입 객체 {barbell, dumbbell, machine, cable, bodyweight, cardio}
 - `EXERCISES` — 종목 마스터 배열 [{id, name, bodyPart, equipment, defaultSets, defaultReps, defaultWeight, defaultRestSec, met, sortOrder}, ...]
@@ -308,9 +308,20 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `genId()` — 고유 ID 생성
 
 **종목 조회:**
-- `getExercise(id)` — ID로 종목 조회
-- `getExercisesByPart(partId)` — 부위별 종목 목록 (sortOrder 정렬)
+- `getExercise(id)` — ID로 종목 조회 (기본 + 커스텀)
+- `getExercisesByPart(partId)` — 부위별 종목 목록 (기본 숨김 제외 + 커스텀, sortOrder 정렬)
 - `getBodyPart(id)` — 부위 정보 조회
+
+**커스텀 종목 CRUD:**
+- `getCustomExercises()` — 커스텀 종목 전체 목록
+- `addCustomExercise(exercise)` — 커스텀 종목 추가 (id 자동 생성)
+- `deleteCustomExercise(id)` — 커스텀 종목 삭제
+
+**기본 종목 숨김:**
+- `getHiddenExercises()` — 숨긴 기본 종목 ID 배열
+- `toggleHideExercise(id)` — 기본 종목 숨김 토글
+- `isExerciseHidden(id)` — 숨김 여부 확인
+- `isCustomExercise(id)` — 커스텀 종목 여부 확인 (id가 'custom_'으로 시작)
 
 **더미 데이터:**
 - `initDummyData()` — 세션 6건, PR, 인바디 3건 생성 (데이터 없을 때만)
