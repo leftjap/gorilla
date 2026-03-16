@@ -663,7 +663,71 @@ showScreen('home')
 
 ---
 
-## 17. 진행 상황
+## 17. 디버깅 가이드
+
+코드 수정으로 해결되지 않는 버그가 있을 때 사용자에게 콘솔 명령어를 요청한다.
+
+### LocalStorage 데이터 확인
+```javascript
+// 세션 목록 확인
+JSON.parse(localStorage.getItem('wk_sessions')).map(s => ({id: s.id, date: s.date}))
+
+// 특정 날짜 세션 필터
+JSON.parse(localStorage.getItem('wk_sessions')).filter(s => s.date === '2026-03-16')
+
+// 중복 데이터 삭제 (ID 지정)
+var sessions = JSON.parse(localStorage.getItem('wk_sessions'));
+sessions = sessions.filter(s => s.id !== '삭제할ID');
+localStorage.setItem('wk_sessions', JSON.stringify(sessions));
+location.reload();
+```
+
+### 전역 변수 상태 확인
+```javascript
+// 운동 화면 상태
+console.log('_currentSession:', _currentSession);
+console.log('_restTimer:', _restTimer);
+console.log('_selectedParts:', _selectedParts);
+```
+
+### DOM 요소 확인
+```javascript
+// 요소 내용 확인
+document.getElementById('요소ID').innerHTML
+document.getElementById('요소ID').outerHTML
+
+// 요소 위치/크기 확인
+document.getElementById('요소ID').getBoundingClientRect()
+
+// 스타일 확인
+getComputedStyle(document.getElementById('요소ID')).display
+```
+
+### 동적 요소 추적
+```javascript
+// DOM 변화 감시 (요소 추가/삭제 추적)
+var observer = new MutationObserver(function(mutations) {
+  mutations.forEach(function(m) {
+    if (m.addedNodes.length) {
+      m.addedNodes.forEach(function(n) {
+        if (n.nodeType === 1) console.log('추가됨:', n.tagName, n.className, n.id);
+      });
+    }
+  });
+});
+observer.observe(document.body, {childList: true, subtree: true});
+console.log('감시 시작');
+```
+
+### 디버깅 절차
+1. 문제 재현 → 스크린샷 요청
+2. 관련 요소/변수 상태 콘솔에서 확인
+3. 원인 파악 후 코드 수정 또는 데이터 정리
+4. 근본 원인이 코드에 있으면 재발 방지 수정 진행
+
+---
+
+## 18. 진행 상황
 
 ### 완료 (✅)
 - [x] 기획서 v1 → v2 작성
