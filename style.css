@@ -593,6 +593,18 @@ input {
   font-size: 11px;
 }
 
+.ex-card-motivate {
+  font-size: 13px;
+  color: var(--gray);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.ex-card-motivate strong {
+  color: #e87461;
+  font-weight: 700;
+}
+
 .ex-card-check {
   font-size: 20px;
 }

@@ -297,9 +297,29 @@ function renderExerciseCard(exIdx) {
         '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
         '<div class="ex-card-info">' +
           '<div class="ex-card-name">' + meta.name + '</div>' +
-          '<div class="ex-card-vol">' +
-            (isCardio ? '' : formatNum(todayVol) + 'kg') +
-          '</div>' +
+          (function() {
+            if (isCardio) return '';
+            if (!lastSets || lastSets.length === 0) return '<div class="ex-card-motivate">첫 기록을 만들어보세요!</div>';
+            // 지난번 세션 날짜 찾기
+            var sessions = getSessions();
+            var lastDate = '';
+            for (var si = sessions.length - 1; si >= 0; si--) {
+              var sess = sessions[si];
+              if (sess.id === _currentSession.id) continue;
+              for (var ei = 0; ei < sess.exercises.length; ei++) {
+                if (sess.exercises[ei].exerciseId === meta.id) {
+                  lastDate = sess.date;
+                  break;
+                }
+              }
+              if (lastDate) break;
+            }
+            var dateDisplay = lastDate ? formatDate(lastDate) : '';
+            return '<div class="ex-card-motivate">' +
+              (dateDisplay ? dateDisplay + ' ' : '') +
+              lastSetCount + '세트 총 <strong>' + formatNum(lastVol) + 'kg</strong>을 들었어요' +
+            '</div>';
+          })() +
         '</div>' +
         (allDone ? '<span class="ex-card-check">✓</span>' : '') +
       '</div>' +
@@ -375,9 +395,6 @@ function renderSetProgress(todayVol, lastVol, lastSetCount, doneCount) {
   var barPct = Math.min(pct, 100);
   var isBurst = pct >= 100 && todayVol > 0;
   var diff = todayVol - lastVol;
-
-  // 요약문: 지난번 세트 수 + 볼륨
-  html += '<div class="set-progress-summary">지난번 ' + lastSetCount + '세트 · ' + formatNum(lastVol) + 'kg</div>';
 
   if (isBurst && diff > 0) {
     html += '<div class="set-progress-burst">🔥 지난번 돌파! +' + formatNum(diff) + 'kg</div>';
