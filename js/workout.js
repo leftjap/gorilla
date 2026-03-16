@@ -620,6 +620,10 @@ function startRestTimer(seconds) {
   var el = document.getElementById('restTimerBar');
   if (!el) return;
 
+  // FINISH WORKOUT 버튼 숨기기
+  var bottomBtn = document.getElementById('bottomBtn');
+  if (bottomBtn) bottomBtn.style.display = 'none';
+
   // 초기 HTML 한 번만 세팅
   el.innerHTML =
     '<div class="rest-timer active">' +
@@ -678,6 +682,10 @@ function dismissRestTimer() {
     el.innerHTML = '';
     el.onclick = null;
   }
+
+  // FINISH WORKOUT 버튼 다시 표시
+  var bottomBtn = document.getElementById('bottomBtn');
+  if (bottomBtn) bottomBtn.style.display = 'block';
 }
 
 // ══ 자동저장 ══
