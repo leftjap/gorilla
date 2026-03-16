@@ -1370,7 +1370,7 @@ input {
 /* ── PR 토스트 ── */
 .pr-toast {
   position: fixed;
-  bottom: 80px;
+  bottom: 160px;
   left: 16px;
   right: 16px;
   background: var(--dark);
@@ -1383,7 +1383,7 @@ input {
   opacity: 0;
   transform: translateY(20px);
   transition: all 0.3s ease;
-  z-index: 30;
+  z-index: 200;
   font-size: 13px;
 }
 
