@@ -882,7 +882,7 @@ input {
 /* ── 휴식 타이머 ── */
 .rest-timer-bar {
   position: fixed;
-  bottom: max(20px, calc(env(safe-area-inset-bottom) + 20px));
+  bottom: calc(max(20px, env(safe-area-inset-bottom) + 20px) + 60px);
   left: 20px;
   right: 20px;
   padding: 0;
