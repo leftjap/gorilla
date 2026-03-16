@@ -847,7 +847,7 @@ input {
   left: 0;
   right: 0;
   padding: 16px;
-  z-index: 20;
+  z-index: 110;
 }
 
 .rest-timer {
