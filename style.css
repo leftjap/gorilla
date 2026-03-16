@@ -906,6 +906,16 @@ input {
   right: 20px;
   padding: 0;
   z-index: 150;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.rest-timer-bar > * {
+  pointer-events: auto;
 }
 
 .rest-timer {
