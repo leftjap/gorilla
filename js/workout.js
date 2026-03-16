@@ -869,6 +869,11 @@ function restoreSession() {
     _selectedParts = saved.tags.slice();
     _workoutStartTime = saved.startTime;
     _currentExerciseIndex = 0;
+
+    // 타이머 재시작
+    if (_workoutStartTime && !_workoutTimerInterval) {
+      startWorkoutTimer();
+    }
     return true;
   }
   return false;
@@ -876,18 +881,11 @@ function restoreSession() {
 
 // ══ 뒤로가기 / 운동 취소 ══
 function onWorkoutBack() {
-  if (_currentSession) {
-    cancelWorkout();
-  } else {
-    // 부위 선택 화면에서 뒤로가기 → 홈
-    _selectedParts = [];
-    showScreen('home');
-  }
+  // 세션 유지한 채 홈으로 이동 (일시정지 개념)
+  showScreen('home');
 }
 
 function cancelWorkout() {
-  if (!confirm('운동을 취소하시겠습니까?\n기록이 저장되지 않습니다.')) return;
-
   // 임시 저장 제거
   localStorage.removeItem('wk_current_session');
 

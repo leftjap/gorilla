@@ -15,7 +15,14 @@ function showScreen(screenId) {
     workoutScreen.style.display = 'none';
     workoutHeader.style.display = 'none';
     renderHome();
-    updateBottomButton('start');
+
+    // 진행 중인 세션이 있으면 continue, 없으면 start
+    var savedSession = L('wk_current_session');
+    if (savedSession && savedSession.endTime === null) {
+      updateBottomButton('continue');
+    } else {
+      updateBottomButton('start');
+    }
     window.scrollTo(0, 0);
   } else if (screenId === 'workout') {
     mainView.style.display = 'none';
@@ -390,12 +397,21 @@ function updateMonthTitle() {
 }
 
 // ══ 하단 고정 버튼 상태 관리 ══
-var _bottomBtnState = 'start'; // 'start' | 'partSelect' | 'partSelectReady' | 'workout' | 'summary'
+var _bottomBtnState = 'start'; // 'start' | 'continue' | 'partSelect' | 'partSelectReady' | 'workout' | 'summary'
+var _longPressTimer = null;
 
 function updateBottomButton(state) {
   _bottomBtnState = state;
   var btn = document.getElementById('bottomBtn');
   if (!btn) return;
+
+  // 기존 이벤트 정리
+  btn.onmousedown = null;
+  btn.onmouseup = null;
+  btn.onmouseleave = null;
+  btn.ontouchstart = null;
+  btn.ontouchend = null;
+  btn.ontouchcancel = null;
 
   btn.style.display = 'block';
 
@@ -405,6 +421,14 @@ function updateBottomButton(state) {
       btn.disabled = false;
       btn.style.background = 'var(--dark)';
       btn.style.color = 'var(--white)';
+      break;
+    case 'continue':
+      btn.textContent = 'CONTINUE WORKOUT';
+      btn.disabled = false;
+      btn.style.background = 'var(--blue)';
+      btn.style.color = 'var(--white)';
+      // 길게 누르기 이벤트 등록
+      setupLongPress(btn);
       break;
     case 'partSelect':
       btn.textContent = 'START';
@@ -433,10 +457,44 @@ function updateBottomButton(state) {
   }
 }
 
+function setupLongPress(btn) {
+  var startLongPress = function(e) {
+    e.preventDefault();
+    _longPressTimer = setTimeout(function() {
+      // 길게 누르면 취소 옵션
+      if (confirm('운동을 취소하시겠습니까?\n기록이 저장되지 않습니다.')) {
+        cancelWorkout();
+      }
+    }, 800);
+  };
+
+  var cancelLongPress = function() {
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
+  };
+
+  // 터치 이벤트
+  btn.ontouchstart = startLongPress;
+  btn.ontouchend = cancelLongPress;
+  btn.ontouchcancel = cancelLongPress;
+
+  // 마우스 이벤트 (데스크톱 테스트용)
+  btn.onmousedown = startLongPress;
+  btn.onmouseup = cancelLongPress;
+  btn.onmouseleave = cancelLongPress;
+}
+
 function onBottomBtnClick() {
   switch (_bottomBtnState) {
     case 'start':
       startWorkoutFlow();
+      break;
+    case 'continue':
+      // 진행 중인 세션 복원하고 운동 화면으로
+      restoreSession();
+      showScreen('workout');
       break;
     case 'partSelectReady':
       startWorkout();
