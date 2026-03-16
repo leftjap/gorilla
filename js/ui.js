@@ -161,7 +161,7 @@ function renderLastWorkoutCard() {
     }
 
     html +=
-      '<div class="lw-card" onclick="openBottomSheet(\'' + s.date + '\')">' +
+      '<div class="lw-card">' +
         '<div class="lw-header">' +
           '<span class="lw-date">' + formatDate(s.date) + '</span>' +
           '<div class="lw-tags">' + tagsHtml + '</div>' +
