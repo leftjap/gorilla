@@ -636,9 +636,9 @@ function showPRFlash(exIdx, setIdx, prResult) {
   overlay.className = 'pr-toast-overlay';
   overlay.innerHTML =
     '<div class="pr-toast">' +
-      '<span class="pr-toast-icon">🏆</span>' +
-      '<span class="pr-toast-title">개인 기록 달성!</span>' +
-      '<span class="pr-toast-detail">' + name + '<br>' + set.weight + 'kg × ' + set.reps + '회</span>' +
+      '<span class="pr-toast-title">PR</span>' +
+      '<span class="pr-toast-name">' + name + '</span>' +
+      '<span class="pr-toast-detail">' + set.weight + 'kg × ' + set.reps + '회</span>' +
     '</div>';
   document.body.appendChild(overlay);
 
@@ -646,7 +646,7 @@ function showPRFlash(exIdx, setIdx, prResult) {
   setTimeout(function() {
     overlay.classList.remove('show');
     setTimeout(function() { overlay.remove(); }, 300);
-  }, 2500);
+  }, 2000);
 }
 
 // ══ 휴식 타이머 ══

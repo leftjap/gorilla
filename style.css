@@ -1411,16 +1411,19 @@ input {
   transform: scale(1);
 }
 
-.pr-toast-icon {
-  font-size: 48px;
-  margin-bottom: 12px;
+.pr-toast-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e87461;
+  margin-bottom: 8px;
   display: block;
+  letter-spacing: 1px;
 }
 
-.pr-toast-title {
-  font-size: 18px;
+.pr-toast-name {
+  font-size: 16px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   display: block;
 }
 
