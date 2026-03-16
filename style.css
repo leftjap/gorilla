@@ -638,9 +638,9 @@ input {
 }
 
 .ex-card-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
 }
