@@ -262,8 +262,6 @@ function renderExerciseCard(exIdx) {
   var meta = getExercise(exData.exerciseId);
   if (!meta) return '';
 
-  var part = getBodyPart(meta.bodyPart);
-  var partColor = part ? part.color : '#999';
   var isCardio = meta.equipment === 'cardio';
 
   // 오늘 볼륨 계산
@@ -319,10 +317,10 @@ function renderExerciseCard(exIdx) {
 
   var html = '';
 
-  // 1. 카드헤더 (박스 밖, 최상단)
+  // 1. 카드헤더 (박스 밖, 최상단) — 세로바 색상 고정
   html +=
     '<div class="ex-card-header-standalone">' +
-      '<div class="ex-card-color" style="background:' + partColor + '"></div>' +
+      '<div class="ex-card-color" style="background:#e87461"></div>' +
       '<div class="ex-card-info">' +
         '<div class="ex-card-name">' + meta.name + '</div>' +
       '</div>' +
