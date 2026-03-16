@@ -951,6 +951,262 @@ input {
   line-height: 1.2;
 }
 
+/* ── 설정 화면 ── */
+.settings-content {
+  padding-bottom: calc(40px + max(0px, env(safe-area-inset-bottom)));
+  background: var(--bg-gray);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(16px, env(safe-area-inset-top) + 12px) 16px 12px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.settings-back {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dark);
+  background: none;
+  transition: background 0.2s ease;
+}
+
+.settings-back:active {
+  background: var(--light-gray);
+}
+
+.settings-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.settings-part-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  background: var(--white);
+  border-bottom: 1px solid var(--light-gray);
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-part-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-part-tab {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-gray);
+  background: transparent;
+  color: var(--gray);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-part-tab.active {
+  background: var(--dark);
+  color: var(--white);
+  border-color: var(--dark);
+  font-weight: 600;
+}
+
+.settings-exercise-list {
+  padding: 0 16px;
+}
+
+.settings-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--icon-inactive);
+  padding: 16px 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-ex-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.settings-ex-item.hidden-ex {
+  opacity: 0.45;
+}
+
+.settings-ex-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-ex-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 2px;
+}
+
+.settings-ex-meta {
+  font-size: 12px;
+  color: var(--icon-inactive);
+}
+
+/* 토글 스위치 */
+.settings-ex-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 13px;
+  background: var(--border-gray);
+  border: none;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.settings-ex-toggle.active {
+  background: var(--dark);
+}
+
+.settings-toggle-knob {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--white);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.settings-ex-toggle.active .settings-toggle-knob {
+  transform: translateX(18px);
+}
+
+.settings-ex-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--icon-inactive);
+  background: none;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.settings-ex-delete:active {
+  color: #ff6b6b;
+  background: var(--light-gray);
+}
+
+.settings-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--icon-inactive);
+  font-size: 14px;
+}
+
+.settings-add-area {
+  padding: 16px;
+}
+
+.settings-add-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1.5px dashed var(--border-gray);
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-add-btn:active {
+  background: var(--light-gray);
+  border-color: var(--gray);
+}
+
+/* 종목 추가 폼 */
+.settings-form {
+  margin: 0 16px 20px 16px;
+  background: var(--white);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.settings-form-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: 16px;
+}
+
+.settings-form-part {
+  padding: 10px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.settings-eq-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.settings-eq-tab {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-gray);
+  background: transparent;
+  color: var(--gray);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-eq-tab.active {
+  background: var(--dark);
+  color: var(--white);
+  border-color: var(--dark);
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-half {
+  flex: 1;
+}
+
 /* ── 운동 완료 요약 ── */
 .workout-summary {
   padding: 40px 20px 20px 20px;
