@@ -682,8 +682,8 @@ input {
 }
 
 .set-input.filled {
-  background: var(--bg-gray);
-  border-color: var(--icon-inactive);
+  background: transparent;
+  border-color: transparent;
 }
 
 /* ── ＋/－ 조정 버튼 그룹 ── */
@@ -691,9 +691,9 @@ input {
   display: flex;
   align-items: center;
   gap: 0;
-  border: 1px solid var(--border-gray);
-  border-radius: 8px;
-  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
 }
 
 .set-adjust-group .set-input {
@@ -701,41 +701,33 @@ input {
   min-width: 0;
   border-radius: 0;
   border: none;
-  border-left: 1px solid var(--border-gray);
-  border-right: 1px solid var(--border-gray);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   padding: 8px 2px;
+  background: transparent;
+  color: var(--dark);
 }
 
 .set-adjust-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--light-gray);
-  color: var(--dark);
-  font-size: 16px;
-  font-weight: 700;
+  background: none;
+  color: var(--icon-inactive);
+  font-size: 18px;
+  font-weight: 400;
   border: none;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
 
-.set-adjust-btn:first-child {
-  border-radius: 0;
-}
-
-.set-adjust-btn:last-child {
-  border-radius: 0;
-}
-
 .set-adjust-btn:active {
-  background: var(--border-gray);
+  color: var(--dark);
 }
 
 /* 완료된 세트의 조정 버튼 비활성화 */
