@@ -144,6 +144,7 @@ function startWorkout() {
   }
 
   updateWorkoutHeader(true);
+  updateBottomButton('workout');
   _currentExerciseIndex = 0;
   renderExerciseCards();
   startWorkoutTimer();
