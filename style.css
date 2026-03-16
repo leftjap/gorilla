@@ -3168,3 +3168,57 @@ input {
 .sync-status {
   display: none !important;
 }
+
+/* ── iOS 스와이프 백 ── */
+
+/* 전환 대상 화면에 transform 기반 이동 적용 */
+.screen.swipe-active,
+.main-view.swipe-active {
+  will-change: transform;
+}
+
+/* 스와이프 중 현재 화면 (위에 있는 화면) */
+.screen.swiping {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  background: var(--bg-gray);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+/* 스와이프 복귀/완료 애니메이션 */
+.screen.swipe-animating {
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* 뒤에 깔리는 홈 화면 오버레이 (어두운 딤) */
+.swipe-back-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 199;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.swipe-back-overlay.visible {
+  opacity: 1;
+}
+
+/* 스와이프 중 홈 화면이 뒤에서 살짝 왼쪽에서 등장하는 효과 */
+.main-view.swipe-peek {
+  display: block !important;
+  transform: translateX(-80px);
+  will-change: transform;
+}
+
+.main-view.swipe-peek.swipe-animating {
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
