@@ -102,10 +102,10 @@ function renderLastWorkoutCard() {
   var el = document.getElementById('lastWorkoutCard');
   if (!el) return;
 
-  // 선택된 날짜의 세션 표시
+  // 선택된 날짜의 세션
   var sessions = getSessionsByDate(_selectedWeekDate);
 
-  // 선택된 날짜에 세션이 없고 오늘이면 가장 최근 세션 표시
+  // 선택된 날짜에 세션이 없고 오늘이면 가장 최근 세션 1건
   if (sessions.length === 0 && _selectedWeekDate === today()) {
     var lastSession = getLastSession();
     if (lastSession) {
@@ -132,75 +132,82 @@ function renderLastWorkoutCard() {
     return;
   }
 
-  var html = '';
-  for (var si = 0; si < sessions.length; si++) {
-    var s = sessions[si];
+  // 가장 최근 1건만 카드로 표시 (startTime 기준 내림차순)
+  sessions.sort(function(a, b) { return (b.startTime || 0) - (a.startTime || 0); });
+  var s = sessions[0];
+  var remainCount = sessions.length - 1;
 
-    // 부위 태그
-    var tagsHtml = '';
-    for (var i = 0; i < s.tags.length; i++) {
-      var part = getBodyPart(s.tags[i]);
-      var name = part ? part.name : s.tags[i];
-      tagsHtml += '<span class="lw-tag">' + name + '</span>';
+  // 부위 태그
+  var tagsHtml = '';
+  for (var i = 0; i < s.tags.length; i++) {
+    var part = getBodyPart(s.tags[i]);
+    var name = part ? part.name : s.tags[i];
+    tagsHtml += '<span class="lw-tag">' + name + '</span>';
+  }
+
+  // 종목 칩
+  var exChipsHtml = '';
+  for (var i = 0; i < s.exercises.length; i++) {
+    var ex = s.exercises[i];
+    var exInfo = getExercise(ex.exerciseId);
+    if (!exInfo) continue;
+
+    var doneSets = 0;
+    var hasPR = false;
+    for (var j = 0; j < ex.sets.length; j++) {
+      if (ex.sets[j].done) doneSets++;
+      if (ex.sets[j].isPR) hasPR = true;
     }
 
-    // 종목 칩
-    var exChipsHtml = '';
-    for (var i = 0; i < s.exercises.length; i++) {
-      var ex = s.exercises[i];
-      var exInfo = getExercise(ex.exerciseId);
-      if (!exInfo) continue;
-
-      var doneSets = 0;
-      var hasPR = false;
-      for (var j = 0; j < ex.sets.length; j++) {
-        if (ex.sets[j].done) doneSets++;
-        if (ex.sets[j].isPR) hasPR = true;
+    var setsLabel = '';
+    if (exInfo.equipment === 'cardio') {
+      var totalMin = 0;
+      for (var m = 0; m < ex.sets.length; m++) {
+        if (ex.sets[m].done) totalMin += ex.sets[m].reps || 0;
       }
-
-      // 유산소(cardio)는 reps를 분으로 표기
-      var setsLabel = '';
-      if (exInfo.equipment === 'cardio') {
-        var totalMin = 0;
-        for (var m = 0; m < ex.sets.length; m++) {
-          if (ex.sets[m].done) totalMin += ex.sets[m].reps || 0;
-        }
-        setsLabel = totalMin + '분';
-      } else {
-        setsLabel = doneSets + '세트';
-      }
-
-      exChipsHtml +=
-        '<div class="lw-ex-chip">' +
-          '<span>' + exInfo.name + '</span>' +
-          '<span class="lw-ex-sets">' + setsLabel + '</span>' +
-          (hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
-        '</div>';
+      setsLabel = totalMin + '분';
+    } else {
+      setsLabel = doneSets + '세트';
     }
 
-    html +=
-      '<div class="lw-card">' +
-        '<div class="lw-header">' +
-          '<span class="lw-date">' + formatDate(s.date) + '</span>' +
-          '<div class="lw-tags">' + tagsHtml + '</div>' +
-        '</div>' +
-        '<div class="lw-stats">' +
-          '<div class="lw-stat">' +
-            '<span class="lw-stat-num">' + formatNum(s.totalVolume || 0) + '<small>kg</small></span>' +
-            '<span class="lw-stat-label">볼륨</span>' +
-          '</div>' +
-          '<div class="lw-stat">' +
-            '<span class="lw-stat-num">' + formatNum(s.totalCalories || 0) + '<small>kcal</small></span>' +
-            '<span class="lw-stat-label">칼로리</span>' +
-          '</div>' +
-          '<div class="lw-stat">' +
-            '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
-            '<span class="lw-stat-label">시간</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="lw-exercises">' + exChipsHtml + '</div>' +
+    exChipsHtml +=
+      '<div class="lw-ex-chip">' +
+        '<span>' + exInfo.name + '</span>' +
+        '<span class="lw-ex-sets">' + setsLabel + '</span>' +
+        (hasPR ? '<span class="lw-ex-pr">PR</span>' : '') +
       '</div>';
   }
+
+  var html =
+    '<div class="lw-card">' +
+      '<div class="lw-header">' +
+        '<span class="lw-date">' + formatDate(s.date) + '</span>' +
+        '<div class="lw-tags">' + tagsHtml + '</div>' +
+      '</div>' +
+      '<div class="lw-stats">' +
+        '<div class="lw-stat">' +
+          '<span class="lw-stat-num">' + formatNum(s.totalVolume || 0) + '<small>kg</small></span>' +
+          '<span class="lw-stat-label">볼륨</span>' +
+        '</div>' +
+        '<div class="lw-stat">' +
+          '<span class="lw-stat-num">' + formatNum(s.totalCalories || 0) + '<small>kcal</small></span>' +
+          '<span class="lw-stat-label">칼로리</span>' +
+        '</div>' +
+        '<div class="lw-stat">' +
+          '<span class="lw-stat-num">' + (s.durationMin || 0) + '<small>분</small></span>' +
+          '<span class="lw-stat-label">시간</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lw-exercises">' + exChipsHtml + '</div>';
+
+  if (remainCount > 0) {
+    html +=
+      '<div class="lw-more" onclick="openBottomSheet(\'' + s.date + '\')">' +
+        '외 ' + remainCount + '건 더보기' +
+      '</div>';
+  }
+
+  html += '</div>';
 
   el.innerHTML = html;
 }

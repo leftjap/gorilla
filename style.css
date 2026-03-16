@@ -1691,6 +1691,22 @@ input {
   color: var(--gray);
 }
 
+.lw-more {
+  text-align: center;
+  padding: 12px 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+  border-top: 1px solid var(--light-gray);
+  margin-top: 12px;
+  transition: color 0.2s ease;
+}
+
+.lw-more:active {
+  color: var(--dark);
+}
+
 /* ── 히어로 카드 ── */
 .hero-card {
   background: var(--white);
