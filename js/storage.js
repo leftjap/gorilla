@@ -5,7 +5,9 @@ const K = {
   sessions: 'wk_sessions',
   prs: 'wk_prs',
   inbody: 'wk_inbody',
-  settings: 'wk_settings'
+  settings: 'wk_settings',
+  customExercises: 'wk_custom_exercises',
+  hiddenExercises: 'wk_hidden_exercises'
 };
 
 // ── LocalStorage 읽기/쓰기 ──
@@ -135,17 +137,70 @@ const EXERCISES = [
 
 // ── 종목 조회 헬퍼 ──
 function getExercise(id) {
-  return EXERCISES.find(function(e) { return e.id === id; });
+  var found = EXERCISES.find(function(e) { return e.id === id; });
+  if (found) return found;
+  var custom = L(K.customExercises) || [];
+  return custom.find(function(e) { return e.id === id; }) || null;
 }
 
 function getExercisesByPart(partId) {
-  return EXERCISES
-    .filter(function(e) { return e.bodyPart === partId; })
-    .sort(function(a, b) { return a.sortOrder - b.sortOrder; });
+  var hidden = L(K.hiddenExercises) || [];
+  var base = EXERCISES.filter(function(e) {
+    return e.bodyPart === partId && hidden.indexOf(e.id) < 0;
+  });
+  var custom = (L(K.customExercises) || []).filter(function(e) {
+    return e.bodyPart === partId;
+  });
+  return base.concat(custom).sort(function(a, b) {
+    return (a.sortOrder || 0) - (b.sortOrder || 0);
+  });
 }
 
 function getBodyPart(id) {
   return BODY_PARTS.find(function(p) { return p.id === id; });
+}
+
+// ── 커스텀 종목 CRUD ──
+function getCustomExercises() {
+  return L(K.customExercises) || [];
+}
+
+function addCustomExercise(exercise) {
+  var arr = getCustomExercises();
+  exercise.id = exercise.id || ('custom_' + genId());
+  exercise.sortOrder = arr.length + 100;
+  arr.push(exercise);
+  S(K.customExercises, arr);
+  return exercise;
+}
+
+function deleteCustomExercise(id) {
+  var arr = getCustomExercises().filter(function(e) { return e.id !== id; });
+  S(K.customExercises, arr);
+}
+
+// ── 기본 종목 숨김 ──
+function getHiddenExercises() {
+  return L(K.hiddenExercises) || [];
+}
+
+function toggleHideExercise(id) {
+  var arr = getHiddenExercises();
+  var idx = arr.indexOf(id);
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+  } else {
+    arr.push(id);
+  }
+  S(K.hiddenExercises, arr);
+}
+
+function isExerciseHidden(id) {
+  return getHiddenExercises().indexOf(id) >= 0;
+}
+
+function isCustomExercise(id) {
+  return id && id.indexOf('custom_') === 0;
 }
 
 // ── 더미 데이터 (개발용) ──
