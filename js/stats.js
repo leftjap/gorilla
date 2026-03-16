@@ -41,6 +41,10 @@ function renderStatsScreen() {
 function renderStatsHeader() {
   var parts = _statsYM.split('-');
   var m = parseInt(parts[1]);
+  var currentYM = getYM();
+  var isCurrentMonth = _statsYM === currentYM;
+
+  var nextBtnClass = 'stats-month-nav' + (isCurrentMonth ? ' disabled' : '');
 
   return (
     '<div class="stats-header">' +
@@ -52,7 +56,7 @@ function renderStatsHeader() {
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
         '</button>' +
         '<span class="stats-month-title">' + m + '월</span>' +
-        '<button class="stats-month-nav" onclick="changeStatsMonth(1)">' +
+        '<button class="' + nextBtnClass + '" onclick="changeStatsMonth(1)">' +
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>' +
         '</button>' +
       '</div>' +
@@ -70,7 +74,13 @@ function changeStatsMonth(delta) {
   if (m < 1) { m = 12; y -= 1; }
   else if (m > 12) { m = 1; y += 1; }
 
-  _statsYM = y + '-' + String(m).padStart(2, '0');
+  var newYM = y + '-' + String(m).padStart(2, '0');
+
+  // 미래 월 이동 차단
+  var currentYM = getYM();
+  if (newYM > currentYM) return;
+
+  _statsYM = newYM;
   _statsSelectedDate = null;
   renderStatsScreen();
 }
@@ -110,39 +120,36 @@ function renderStatsMonthCal() {
   var dayVolumes = getMonthDayVolumes(_statsYM);
   var prDates = getMonthPRDates(_statsYM);
 
-  // 월요일 시작으로 변환 (일=0 → 6, 월=1 → 0, ...)
   var firstDayMon = firstDay === 0 ? 6 : firstDay - 1;
 
   var dows = ['월', '화', '수', '목', '금', '토', '일'];
 
   var html = '<div class="stats-cal">';
 
-  // 요일 헤더
   html += '<div class="stats-cal-dow-row">';
   for (var i = 0; i < 7; i++) {
     html += '<div class="stats-cal-dow">' + dows[i] + '</div>';
   }
   html += '</div>';
 
-  // 날짜 그리드
   html += '<div class="stats-cal-grid">';
 
-  // 빈 칸
   for (var i = 0; i < firstDayMon; i++) {
     html += '<div class="stats-cal-cell empty"></div>';
   }
 
-  // 날짜
   for (var d = 1; d <= daysInMonth; d++) {
     var dateStr = _statsYM + '-' + String(d).padStart(2, '0');
     var isToday = dateStr === todayStr;
     var isSelected = dateStr === _statsSelectedDate;
+    var isFuture = dateStr > todayStr;
     var vol = dayVolumes[dateStr] || 0;
     var hasPR = prDates[dateStr] || false;
 
     var cellClass = 'stats-cal-cell';
     if (isToday) cellClass += ' today';
-    if (isSelected) cellClass += ' selected';
+    if (isSelected && !isFuture) cellClass += ' selected';
+    if (isFuture) cellClass += ' future';
 
     var volClass = 'stats-cal-vol';
     if (vol === 0) volClass += ' empty';
@@ -150,8 +157,10 @@ function renderStatsMonthCal() {
 
     var volText = vol > 0 ? formatNum(vol) : '';
 
+    var onclick = isFuture ? '' : ' onclick="selectStatsDate(\'' + dateStr + '\')"';
+
     html +=
-      '<div class="' + cellClass + '" onclick="selectStatsDate(\'' + dateStr + '\')">' +
+      '<div class="' + cellClass + '"' + onclick + '>' +
         '<div class="stats-cal-body">' +
           '<div class="stats-cal-num">' + d + '</div>' +
           '<div class="' + volClass + '">' + volText + '</div>' +
@@ -173,7 +182,7 @@ function selectStatsDate(dateStr) {
 
 // ══ 부위별 볼륨 랭킹 (히어로 카드) ══
 function renderStatsHeroRanking() {
-  var rankings = getMonthPartVolumes(_statsYM);
+  var rankings = getMonthExerciseVolumes(_statsYM);
   var parts = _statsYM.split('-');
   var m = parseInt(parts[1]);
 
@@ -184,23 +193,23 @@ function renderStatsHeroRanking() {
   var html = '<div class="stats-hero">';
 
   // 요약문
-  var topPart = rankings[0];
+  var topEx = rankings[0];
   html +=
     '<div class="stats-hero-summary">' +
-      m + '월에는 <strong>' + topPart.partName + '</strong>을 가장 많이 했어요' +
+      m + '월에는 <strong>' + topEx.name + '</strong>을 가장 많이 했어요' +
     '</div>';
 
-  // 1위 카드 (한 줄)
+  // 1위 카드 (한 줄, 배경색)
   html +=
     '<div class="stats-hero-first">' +
       '<div class="stats-hero-first-left">' +
-        '<div class="stats-hero-first-badge" style="background:' + topPart.color + '">1</div>' +
+        '<div class="stats-hero-first-badge">1</div>' +
         '<div class="stats-hero-first-info">' +
-          '<div class="stats-hero-first-name">' + topPart.partName + '</div>' +
-          '<div class="stats-hero-first-meta">' + topPart.percentage + '%</div>' +
+          '<div class="stats-hero-first-name">' + topEx.name + '</div>' +
+          '<div class="stats-hero-first-meta">' + topEx.percentage + '%</div>' +
         '</div>' +
       '</div>' +
-      '<div class="stats-hero-first-vol">' + formatNum(topPart.volume) + '<small>kg</small></div>' +
+      '<div class="stats-hero-first-vol">' + formatNum(topEx.volume) + '<small>kg</small></div>' +
     '</div>';
 
   // 2~7위 (2열)
@@ -210,9 +219,9 @@ function renderStatsHeroRanking() {
       var r = rankings[i];
       html +=
         '<div class="stats-hero-card">' +
-          '<div class="stats-hero-card-rank" style="background:' + r.color + '">' + (i + 1) + '</div>' +
+          '<div class="stats-hero-card-rank">' + (i + 1) + '</div>' +
           '<div class="stats-hero-card-info">' +
-            '<div class="stats-hero-card-name">' + r.partName + '</div>' +
+            '<div class="stats-hero-card-name">' + r.name + '</div>' +
             '<div class="stats-hero-card-vol">' + formatNum(r.volume) + '<small>kg</small></div>' +
           '</div>' +
         '</div>';

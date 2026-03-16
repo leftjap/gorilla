@@ -462,6 +462,56 @@ function getRecentMonthlyVolumes(count, baseYM) {
 }
 
 /**
+ * 특정 월의 운동종목별 총 볼륨 랭킹 반환
+ * @returns [{ exerciseId, name, volume, percentage }, ...] (볼륨 내림차순)
+ */
+function getMonthExerciseVolumes(ym) {
+  var target = ym || getYM();
+  var sessions = getSessions().filter(function(s) { return getYM(s.date) === target; });
+
+  var exMap = {}; // { exerciseId: volume }
+  var totalVol = 0;
+
+  for (var i = 0; i < sessions.length; i++) {
+    var s = sessions[i];
+    for (var j = 0; j < s.exercises.length; j++) {
+      var ex = s.exercises[j];
+      var meta = getExercise(ex.exerciseId);
+      if (!meta) continue;
+      if (meta.equipment === 'cardio' || meta.equipment === 'bodyweight') continue;
+
+      if (!exMap[ex.exerciseId]) exMap[ex.exerciseId] = 0;
+
+      for (var k = 0; k < ex.sets.length; k++) {
+        var set = ex.sets[k];
+        if (set.done) {
+          var v = (set.weight || 0) * (set.reps || 0);
+          exMap[ex.exerciseId] += v;
+          totalVol += v;
+        }
+      }
+    }
+  }
+
+  var result = [];
+  var exIds = Object.keys(exMap);
+  for (var i = 0; i < exIds.length; i++) {
+    var eid = exIds[i];
+    var meta = getExercise(eid);
+    if (exMap[eid] <= 0) continue;
+    result.push({
+      exerciseId: eid,
+      name: meta ? meta.name : eid,
+      volume: exMap[eid],
+      percentage: totalVol > 0 ? Math.round((exMap[eid] / totalVol) * 1000) / 10 : 0
+    });
+  }
+
+  result.sort(function(a, b) { return b.volume - a.volume; });
+  return result;
+}
+
+/**
  * 특정 월의 날짜별 PR 여부 맵 반환
  * @returns { '2026-03-05': true, ... }
  */

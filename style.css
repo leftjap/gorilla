@@ -1073,8 +1073,22 @@ input {
   cursor: auto;
 }
 
-.stats-cal-cell:active:not(.empty) {
+.stats-cal-cell:active:not(.empty):not(.future) {
   background: rgba(0,0,0,0.03);
+}
+
+.stats-cal-cell.future {
+  cursor: default;
+}
+
+.stats-cal-cell.future .stats-cal-num {
+  color: var(--border-gray);
+}
+
+.stats-month-nav.disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
 }
 
 .stats-cal-body {
@@ -1165,7 +1179,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--white);
+  background: #fdf1ef;
   border-radius: 14px;
   padding: 16px 20px;
   margin-bottom: 8px;
@@ -1185,6 +1199,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--dark);
   color: var(--white);
   font-size: 14px;
   font-weight: 800;
@@ -1238,11 +1253,11 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--icon-inactive);
   color: var(--white);
   font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
-  opacity: 0.8;
 }
 
 .stats-hero-card-info {
