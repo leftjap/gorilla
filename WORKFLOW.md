@@ -323,9 +323,9 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 
 **전역 상수:**
 - `K` — LocalStorage 키 객체 (sessions, prs, inbody, settings, customExercises, hiddenExercises)
-- `BODY_PARTS` — 부위 그룹 배열 [{id, name, color, bg}, ...] (chest, back, lower, shoulder, daily, interval)
+- `BODY_PARTS` — 부위 그룹 배열 [{id, name, color, bg}, ...] (chest, back, lower, shoulder, arms, etc)
 - `EQUIPMENT` — 장비 타입 객체 {barbell, dumbbell, machine, cable, bodyweight, cardio}
-- `EXERCISES` — 종목 마스터 배열 [{id, name, bodyPart, equipment, defaultSets, defaultReps, defaultWeight, defaultRestSec, met, sortOrder}, ...]
+- `EXERCISES` — 종목 마스터 배열 [{id, name, bodyPart, equipment, defaultSets, defaultReps, defaultWeight, defaultRestSec, met, sortOrder, icon}, ...] (40종목, icon은 기본 아이콘 URL)
 
 **유틸 함수:**
 - `L(key)` / `S(key, val)` — LocalStorage 읽기/쓰기
@@ -351,13 +351,16 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `isExerciseHidden(id)` — 숨김 여부 확인
 - `isCustomExercise(id)` — 커스텀 종목 여부 확인 (id가 'custom_'으로 시작)
 
-**더미 데이터:**
-- `initDummyData()` — 비활성화됨 (빈 함수). 실 사용 중이므로 더미 데이터 재생성 차단
-
 **종목 아이콘 관리:**
 - `getExerciseIcons()` — 전체 아이콘 맵 반환 { exerciseId: url }
 - `setExerciseIcon(exerciseId, url)` — 종목 아이콘 URL 설정 (빈값이면 삭제)
-- `getExerciseIcon(exerciseId)` — 종목 아이콘 URL 반환 (없으면 빈 문자열)
+- `getExerciseIcon(exerciseId)` — 종목 아이콘 URL 반환 (커스텀 → 기본 순서로 폴백, 없으면 빈 문자열)
+
+**더미 데이터:**
+- `initDummyData()` — 비활성화됨 (빈 함수)
+
+**데이터 마이그레이션:**
+- `migrateData()` — 부위 태그 변환 (daily→arms, interval→etc) + 종목 ID 변환 (situp→decline_situp, running→treadmill). wk_migrated_v2 플래그로 1회만 실행
 
 ---
 
@@ -555,7 +558,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 **역할:** 앱 초기화, 진입점.
 
 **초기화:**
-- `init()` — 세션 복원 → 월 설정 → 홈 표시 → 서버 동기화(성공 시 홈 갱신)
+- `init()` — 마이그레이션 → 세션 복원 → 월 설정 → 홈 표시 → 서버 동기화(성공 시 홈 갱신)
 - `window.onload` → `init()`
 
 ---

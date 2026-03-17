@@ -88,12 +88,12 @@ function genId() {
 
 // ── 부위 그룹 정의 ──
 const BODY_PARTS = [
-  { id: 'chest',    name: '가슴',    color: '#e85040', bg: '#fdf0ee' },
-  { id: 'back',     name: '등',      color: '#4a90d9', bg: '#e8f0fe' },
-  { id: 'lower',    name: '하체',    color: '#f0a848', bg: '#fef5e8' },
-  { id: 'shoulder', name: '어깨',    color: '#8b5cf6', bg: '#f0ebfe' },
-  { id: 'daily',    name: '데일리',  color: '#34c759', bg: '#e8f8ee' },
-  { id: 'interval', name: '인터벌',  color: '#ff6b9d', bg: '#fee8f0' }
+  { id: 'chest',    name: '가슴',  color: '#e85040', bg: '#fdf0ee' },
+  { id: 'back',     name: '등',    color: '#4a90d9', bg: '#e8f0fe' },
+  { id: 'lower',    name: '하체',  color: '#f0a848', bg: '#fef5e8' },
+  { id: 'shoulder', name: '어깨',  color: '#8b5cf6', bg: '#f0ebfe' },
+  { id: 'arms',     name: '팔',    color: '#34c759', bg: '#e8f8ee' },
+  { id: 'etc',      name: '기타',  color: '#ff6b9d', bg: '#fee8f0' }
 ];
 
 // ── 장비 타입 ──
@@ -108,35 +108,57 @@ const EQUIPMENT = {
 
 // ── 종목 마스터 데이터 ──
 const EXERCISES = [
-  // 가슴
-  { id: 'incline_bench', name: '인클라인 벤치프레스', bodyPart: 'chest', equipment: 'barbell', defaultSets: 4, defaultReps: 8, defaultWeight: 30, defaultRestSec: 90, met: 5, sortOrder: 0 },
+  // ── 가슴 (chest) ──
+  { id: 'flat_bench', name: '플랫 벤치프레스', bodyPart: 'chest', equipment: 'barbell', defaultSets: 5, defaultReps: 8, defaultWeight: 40, defaultRestSec: 120, met: 5, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/BB_BP.gif' },
+  { id: 'incline_bench', name: '인클라인 벤치프레스', bodyPart: 'chest', equipment: 'barbell', defaultSets: 4, defaultReps: 10, defaultWeight: 30, defaultRestSec: 90, met: 5, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/BB_INC_PRESS.gif' },
+  { id: 'db_bench', name: '덤벨 벤치프레스', bodyPart: 'chest', equipment: 'dumbbell', defaultSets: 4, defaultReps: 10, defaultWeight: 16, defaultRestSec: 90, met: 5, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/DB_BP.gif' },
+  { id: 'chest_press', name: '체스트 프레스 머신', bodyPart: 'chest', equipment: 'machine', defaultSets: 4, defaultReps: 12, defaultWeight: 30, defaultRestSec: 60, met: 4, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/CHEST_PRESS_MC.gif' },
+  { id: 'cable_fly', name: '케이블 플라이', bodyPart: 'chest', equipment: 'cable', defaultSets: 4, defaultReps: 12, defaultWeight: 10, defaultRestSec: 60, met: 3, sortOrder: 4, icon: 'https://burnfit.io/wp-content/uploads/STD_CABLE_FLY.gif' },
 
-  // 등
-  { id: 'lat_pulldown', name: '랫풀다운', bodyPart: 'back', equipment: 'cable', defaultSets: 3, defaultReps: 12, defaultWeight: 30, defaultRestSec: 90, met: 4, sortOrder: 0 },
-  { id: 'seated_row', name: '시티드 로우', bodyPart: 'back', equipment: 'cable', defaultSets: 3, defaultReps: 12, defaultWeight: 30, defaultRestSec: 90, met: 4, sortOrder: 1 },
-  { id: 'face_pull', name: '페이스 풀', bodyPart: 'back', equipment: 'cable', defaultSets: 3, defaultReps: 15, defaultWeight: 15, defaultRestSec: 60, met: 3, sortOrder: 2 },
-  { id: 'barbell_row', name: '바벨 로우', bodyPart: 'back', equipment: 'barbell', defaultSets: 3, defaultReps: 10, defaultWeight: 30, defaultRestSec: 90, met: 5, sortOrder: 3 },
-  { id: 'deadlift', name: '데드리프트', bodyPart: 'back', equipment: 'barbell', defaultSets: 3, defaultReps: 5, defaultWeight: 50, defaultRestSec: 120, met: 6, sortOrder: 4 },
+  // ── 등 (back) ──
+  { id: 'deadlift', name: '데드리프트', bodyPart: 'back', equipment: 'barbell', defaultSets: 4, defaultReps: 5, defaultWeight: 60, defaultRestSec: 150, met: 6, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/RM_BB_DL.gif' },
+  { id: 'lat_pulldown', name: '랫풀다운', bodyPart: 'back', equipment: 'cable', defaultSets: 4, defaultReps: 10, defaultWeight: 35, defaultRestSec: 90, met: 4, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/LAT_PULL_DOWN.gif' },
+  { id: 'seated_row', name: '시티드 로우', bodyPart: 'back', equipment: 'cable', defaultSets: 4, defaultReps: 10, defaultWeight: 35, defaultRestSec: 90, met: 4, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/SEATED_CABLE_ROW.gif' },
+  { id: 'barbell_row', name: '바벨 로우', bodyPart: 'back', equipment: 'barbell', defaultSets: 4, defaultReps: 8, defaultWeight: 40, defaultRestSec: 90, met: 5, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/PAUSE_BB_ROW.gif' },
+  { id: 'pullup', name: '풀업', bodyPart: 'back', equipment: 'bodyweight', defaultSets: 4, defaultReps: 8, defaultWeight: 0, defaultRestSec: 90, met: 5, sortOrder: 4, icon: 'https://burnfit.io/wp-content/uploads/PULL_UP.gif' },
+  { id: 'one_arm_row', name: '원암 덤벨 로우', bodyPart: 'back', equipment: 'dumbbell', defaultSets: 4, defaultReps: 10, defaultWeight: 20, defaultRestSec: 60, met: 4, sortOrder: 5, icon: 'https://burnfit.io/wp-content/uploads/OA_DB_ROW.gif' },
+  { id: 'low_row_machine', name: '로우 로우 머신', bodyPart: 'back', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 30, defaultRestSec: 60, met: 4, sortOrder: 6, icon: 'https://burnfit.io/wp-content/uploads/LOW_ROW_MC.gif' },
+  { id: 'high_row_machine', name: '하이 로우 머신', bodyPart: 'back', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 30, defaultRestSec: 60, met: 4, sortOrder: 7, icon: 'https://burnfit.io/wp-content/uploads/HIGH_ROW_MC.gif' },
 
-  // 하체
-  { id: 'leg_extension', name: '레그 익스텐션', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 12, defaultWeight: 25, defaultRestSec: 60, met: 4, sortOrder: 0 },
-  { id: 'leg_curl', name: '레그 컬', bodyPart: 'lower', equipment: 'machine', defaultSets: 3, defaultReps: 12, defaultWeight: 20, defaultRestSec: 60, met: 4, sortOrder: 1 },
-  { id: 'barbell_squat', name: '바벨 백 스쿼트', bodyPart: 'lower', equipment: 'barbell', defaultSets: 4, defaultReps: 5, defaultWeight: 40, defaultRestSec: 120, met: 6, sortOrder: 2 },
-  { id: 'leg_press', name: '레그 프레스', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 80, defaultRestSec: 90, met: 5, sortOrder: 3 },
+  // ── 하체 (lower) ──
+  { id: 'barbell_squat', name: '바벨 백 스쿼트', bodyPart: 'lower', equipment: 'barbell', defaultSets: 5, defaultReps: 5, defaultWeight: 50, defaultRestSec: 150, met: 6, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/BB_BSQT.gif' },
+  { id: 'leg_press', name: '레그 프레스', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 80, defaultRestSec: 90, met: 5, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/LEG_PRESS-1.gif' },
+  { id: 'horizontal_leg_press', name: '수평 레그 프레스', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 60, defaultRestSec: 90, met: 5, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/HZ_LEG_PRESS.gif' },
+  { id: 'leg_extension', name: '레그 익스텐션', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 12, defaultWeight: 25, defaultRestSec: 60, met: 4, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/LGE_EXT-1.gif' },
+  { id: 'leg_curl', name: '레그 컬', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 12, defaultWeight: 20, defaultRestSec: 60, met: 4, sortOrder: 4, icon: 'https://burnfit.io/wp-content/uploads/LEG_CURL.gif' },
+  { id: 'hack_squat', name: '핵 스쿼트', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 40, defaultRestSec: 90, met: 5, sortOrder: 5, icon: 'https://burnfit.io/wp-content/uploads/HACK_SQT.gif' },
+  { id: 'hip_abduction', name: '힙 어브덕션', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 15, defaultWeight: 30, defaultRestSec: 45, met: 3, sortOrder: 6, icon: 'https://burnfit.io/wp-content/uploads/HIP_ABD_MC.gif' },
+  { id: 'inner_thigh', name: '이너 싸이', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 15, defaultWeight: 30, defaultRestSec: 45, met: 3, sortOrder: 7, icon: 'https://burnfit.io/wp-content/uploads/INN_THIGH_MC.gif' },
+  { id: 'calf_raise', name: '카프 레이즈', bodyPart: 'lower', equipment: 'machine', defaultSets: 4, defaultReps: 15, defaultWeight: 40, defaultRestSec: 45, met: 3, sortOrder: 8, icon: 'https://burnfit.io/wp-content/uploads/STD_CALF_RAISE-1.gif' },
 
-  // 어깨
-  { id: 'ohp', name: '오버헤드 프레스', bodyPart: 'shoulder', equipment: 'barbell', defaultSets: 4, defaultReps: 8, defaultWeight: 20, defaultRestSec: 90, met: 5, sortOrder: 0 },
-  { id: 'side_lateral', name: '사이드 레터럴 레이즈', bodyPart: 'shoulder', equipment: 'dumbbell', defaultSets: 3, defaultReps: 15, defaultWeight: 5, defaultRestSec: 60, met: 3, sortOrder: 1 },
+  // ── 어깨 (shoulder) ──
+  { id: 'ohp', name: '오버헤드 프레스', bodyPart: 'shoulder', equipment: 'barbell', defaultSets: 4, defaultReps: 8, defaultWeight: 25, defaultRestSec: 120, met: 5, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/BB_PRESS-1.gif' },
+  { id: 'db_shoulder_press', name: '덤벨 숄더 프레스', bodyPart: 'shoulder', equipment: 'dumbbell', defaultSets: 4, defaultReps: 10, defaultWeight: 12, defaultRestSec: 90, met: 4, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/DB_SHD_PRESS-1.gif' },
+  { id: 'shoulder_press_machine', name: '숄더 프레스 머신', bodyPart: 'shoulder', equipment: 'machine', defaultSets: 4, defaultReps: 10, defaultWeight: 20, defaultRestSec: 60, met: 4, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/SHD_PRESS_MAC-1.gif' },
+  { id: 'side_lateral', name: '사이드 레터럴 레이즈', bodyPart: 'shoulder', equipment: 'dumbbell', defaultSets: 4, defaultReps: 15, defaultWeight: 6, defaultRestSec: 45, met: 3, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/DB_LAT_RAISE.gif' },
+  { id: 'face_pull', name: '페이스 풀', bodyPart: 'shoulder', equipment: 'cable', defaultSets: 4, defaultReps: 15, defaultWeight: 15, defaultRestSec: 45, met: 3, sortOrder: 4, icon: 'https://burnfit.io/wp-content/uploads/FACE_PULL-1.gif' },
+  { id: 'rear_delt_fly', name: '리어 델트 플라이', bodyPart: 'shoulder', equipment: 'dumbbell', defaultSets: 4, defaultReps: 12, defaultWeight: 6, defaultRestSec: 45, met: 3, sortOrder: 5, icon: 'https://burnfit.io/wp-content/uploads/REV_PEC_DECK_MC.gif' },
+  { id: 'rear_delt_machine', name: '리어 델토이드 머신', bodyPart: 'shoulder', equipment: 'machine', defaultSets: 4, defaultReps: 12, defaultWeight: 20, defaultRestSec: 45, met: 3, sortOrder: 6, icon: 'https://burnfit.io/wp-content/uploads/REV_PEC_DECK_MC.gif' },
 
-  // 데일리
-  { id: 'wrist_curl', name: '바벨 리스트 컬', bodyPart: 'daily', equipment: 'barbell', defaultSets: 3, defaultReps: 15, defaultWeight: 15, defaultRestSec: 45, met: 3, sortOrder: 0 },
-  { id: 'situp', name: '싯업', bodyPart: 'daily', equipment: 'bodyweight', defaultSets: 3, defaultReps: 20, defaultWeight: 0, defaultRestSec: 45, met: 4, sortOrder: 1 },
+  // ── 팔 (arms) ──
+  { id: 'barbell_curl', name: '바벨 컬', bodyPart: 'arms', equipment: 'barbell', defaultSets: 4, defaultReps: 10, defaultWeight: 20, defaultRestSec: 60, met: 3, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/BB_BC_CURL.gif' },
+  { id: 'db_curl', name: '덤벨 컬', bodyPart: 'arms', equipment: 'dumbbell', defaultSets: 4, defaultReps: 12, defaultWeight: 10, defaultRestSec: 45, met: 3, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/INC_DB_CURL.gif' },
+  { id: 'hammer_curl', name: '해머 컬', bodyPart: 'arms', equipment: 'dumbbell', defaultSets: 4, defaultReps: 12, defaultWeight: 10, defaultRestSec: 45, met: 3, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/DB_HAM_CURL-1.gif' },
+  { id: 'cable_pushdown', name: '케이블 푸시다운', bodyPart: 'arms', equipment: 'cable', defaultSets: 4, defaultReps: 12, defaultWeight: 20, defaultRestSec: 45, met: 3, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/CABLE_PUSH_DOWN.gif' },
+  { id: 'bench_dips', name: '벤치 딥스', bodyPart: 'arms', equipment: 'bodyweight', defaultSets: 4, defaultReps: 12, defaultWeight: 0, defaultRestSec: 45, met: 4, sortOrder: 4, icon: 'https://burnfit.io/wp-content/uploads/BENCH_DIPS.gif' },
+  { id: 'overhead_ext', name: '오버헤드 익스텐션', bodyPart: 'arms', equipment: 'cable', defaultSets: 4, defaultReps: 12, defaultWeight: 15, defaultRestSec: 45, met: 3, sortOrder: 5, icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRg5xeizeECr4uraPByTw6oT1QZhhUr2kv4dQ&s' },
+  { id: 'wrist_curl', name: '리스트 컬', bodyPart: 'arms', equipment: 'barbell', defaultSets: 4, defaultReps: 15, defaultWeight: 15, defaultRestSec: 30, met: 2, sortOrder: 6, icon: 'https://burnfit.io/wp-content/uploads/BB_WRIST_CURL.gif' },
 
-  // 인터벌 (유산소 — reps 사용하지 않음, durationMin 별도 입력)
-  { id: 'running', name: '러닝', bodyPart: 'interval', equipment: 'cardio', defaultSets: 1, defaultReps: 0, defaultWeight: 0, defaultRestSec: 0, met: 9, sortOrder: 0 },
-
-  // 데일리 추가 종목
-  { id: 'barbell_curl', name: '바벨 컬', bodyPart: 'daily', equipment: 'barbell', defaultSets: 3, defaultReps: 12, defaultWeight: 15, defaultRestSec: 60, met: 3, sortOrder: 3 }
+  // ── 기타 (etc) ──
+  { id: 'decline_situp', name: '디클라인 싯업', bodyPart: 'etc', equipment: 'bodyweight', defaultSets: 4, defaultReps: 20, defaultWeight: 0, defaultRestSec: 30, met: 4, sortOrder: 0, icon: 'https://burnfit.io/wp-content/uploads/DEC_SIT_UP.gif' },
+  { id: 'treadmill', name: '트레드밀', bodyPart: 'etc', equipment: 'cardio', defaultSets: 1, defaultReps: 0, defaultWeight: 0, defaultRestSec: 0, met: 9, sortOrder: 1, icon: 'https://burnfit.io/wp-content/uploads/TREADMIL-1.gif' },
+  { id: 'bike', name: '실내 자전거', bodyPart: 'etc', equipment: 'cardio', defaultSets: 1, defaultReps: 0, defaultWeight: 0, defaultRestSec: 0, met: 7, sortOrder: 2, icon: 'https://burnfit.io/wp-content/uploads/CYCLE.gif' },
+  { id: 'stepmill', name: '스텝밀', bodyPart: 'etc', equipment: 'cardio', defaultSets: 1, defaultReps: 0, defaultWeight: 0, defaultRestSec: 0, met: 8, sortOrder: 3, icon: 'https://burnfit.io/wp-content/uploads/STEPMILL_MAC.gif' }
 ];
 
 // ── 종목 조회 헬퍼 ──
@@ -207,9 +229,67 @@ function isCustomExercise(id) {
   return id && id.indexOf('custom_') === 0;
 }
 
-// ── 더미 데이터 (비활성화 — 실 사용 중이므로 재생성 차단) ──
+// ── 더미 데이터 (비활성화) ──
 function initDummyData() {
-  // 의도적으로 비워둠. 기존 더미 데이터 재생성을 방지.
+  // 비활성화됨
+}
+
+// ── 데이터 마이그레이션 ──
+function migrateData() {
+  var migrated = L('wk_migrated_v2');
+  if (migrated) return;
+
+  // 부위 태그 변환 맵
+  var tagMap = { daily: 'arms', interval: 'etc' };
+  // 종목 ID 변환 맵
+  var idMap = { situp: 'decline_situp', running: 'treadmill' };
+
+  var sessions = L(K.sessions);
+  if (sessions && sessions.length > 0) {
+    var changed = false;
+    for (var i = 0; i < sessions.length; i++) {
+      var s = sessions[i];
+      // 태그 변환
+      for (var t = 0; t < s.tags.length; t++) {
+        if (tagMap[s.tags[t]]) {
+          s.tags[t] = tagMap[s.tags[t]];
+          changed = true;
+        }
+      }
+      // 종목 ID 변환
+      for (var e = 0; e < s.exercises.length; e++) {
+        var oldId = s.exercises[e].exerciseId;
+        if (idMap[oldId]) {
+          s.exercises[e].exerciseId = idMap[oldId];
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      S(K.sessions, sessions);
+    }
+  }
+
+  // PR 데이터의 종목 ID 변환
+  var prs = L(K.prs);
+  if (prs) {
+    var prChanged = false;
+    var idMapKeys = Object.keys(idMap);
+    for (var k = 0; k < idMapKeys.length; k++) {
+      var oldKey = idMapKeys[k];
+      var newKey = idMap[oldKey];
+      if (prs[oldKey]) {
+        prs[newKey] = (prs[newKey] || []).concat(prs[oldKey]);
+        delete prs[oldKey];
+        prChanged = true;
+      }
+    }
+    if (prChanged) {
+      S(K.prs, prs);
+    }
+  }
+
+  S('wk_migrated_v2', true);
 }
 
 // ── 종목 아이콘 관리 ──
@@ -229,5 +309,8 @@ function setExerciseIcon(exerciseId, url) {
 
 function getExerciseIcon(exerciseId) {
   var icons = getExerciseIcons();
-  return icons[exerciseId] || '';
+  if (icons[exerciseId]) return icons[exerciseId];
+  // 기본 아이콘 폴백: EXERCISES 마스터의 icon 필드
+  var ex = EXERCISES.find(function(e) { return e.id === exerciseId; });
+  return (ex && ex.icon) ? ex.icon : '';
 }
