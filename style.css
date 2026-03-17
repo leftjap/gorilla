@@ -513,8 +513,9 @@ input {
   display: flex;
   gap: 8px;
   flex: 1;
-  overflow: hidden;
+  overflow-x: auto;
   min-width: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .exercise-nav-scroll::-webkit-scrollbar {
@@ -554,21 +555,27 @@ input {
 }
 
 .ex-nav-more {
-  padding: 8px 12px;
-  border-radius: 20px;
-  border: none;
-  background: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-gray);
+  background: var(--white);
   color: var(--gray);
-  font-size: 20px;
-  font-weight: 400;
-  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  margin-left: 4px;
+  margin-left: 8px;
   -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s ease;
 }
 
 .ex-nav-more:active {
+  background: var(--light-gray);
+  border-color: var(--dark);
   color: var(--dark);
 }
 
