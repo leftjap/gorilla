@@ -487,6 +487,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 - `restoreSession()` — 앱 복귀 시 진행 중 세션 복원
 - `onWorkoutBack()` — 헤더 뒤로가기 핸들러
 - `cancelWorkout()` — 운동 취소
+- `syncExercisesWithSettings()` — 설정 변경 후 운동 복귀 시 세션 종목 동기화 (새 종목 추가, 숨김 종목 제거, 기록 있는 종목 보존)
 
 ---
 
@@ -513,6 +514,8 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 
 **설정 화면:**
 - `renderSettings()` — 설정 화면 전체 렌더 (헤더 + 부위 탭 + 종목 목록 + 추가 버튼)
+- `openSettingsForPart(partId)` — 특정 부위를 선택한 상태로 설정 화면 열기 (운동 화면에서 호출)
+- `goBackFromSettings()` — 설정 화면 뒤로가기 (운동 중이면 workout으로, 아니면 home으로 복귀)
 - `selectSettingsPart(partId)` — 부위 탭 전환
 - `renderSettingsExerciseList()` — 부위별 종목 목록 (기본 + 커스텀, 숨김 표시)
 
@@ -585,6 +588,7 @@ WORKFLOW.md        — AI 작업 가이드 (이 파일)
 | _statsYM | stats.js | 통계 화면에서 보고 있는 월 (YYYY-MM) |
 | _statsSelectedDate | stats.js | 통계 화면 캘린더에서 선택된 날짜 |
 | _settingsSelectedPart | settings.js | 설정 화면에서 선택된 부위 ID (기본: 'chest') |
+| _settingsReturnTo | settings.js | 설정 화면 뒤로가기 시 돌아갈 화면 ('workout' 또는 null) |
 | _selectedEquipment | settings.js | 종목 추가 폼에서 선택된 장비 (기본: 'barbell') |
 | GAS_URL | sync.js | GAS 서버 엔드포인트 URL (Google Apps Script) |
 | GAS_TOKEN | sync.js | GAS 서버 인증 토큰 (보안: 향후 개선 필요) |

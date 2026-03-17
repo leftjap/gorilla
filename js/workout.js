@@ -211,7 +211,7 @@ function updateWorkoutHeader(inProgress) {
       var tagsHtml = '';
       for (var i = 0; i < _selectedParts.length; i++) {
         var p = getBodyPart(_selectedParts[i]);
-        tagsHtml += '<span class="wh-tag">' + p.name + '</span>';
+        tagsHtml += '<span class="wh-tag" onclick="openSettingsForPart(\'' + _selectedParts[i] + '\')" style="cursor:pointer;">' + p.name + '</span>';
       }
       tagsEl.innerHTML = tagsHtml;
     }
@@ -957,6 +957,94 @@ function onWorkoutBack() {
     // 세션 유지한 채 홈으로 이동 (일시정지 개념)
     showScreen('home');
   }
+}
+
+// ══ 설정 변경 후 세션 종목 동기화 ══
+function syncExercisesWithSettings() {
+  if (!_currentSession) return;
+
+  // 현재 세션에 있는 종목 ID 세트
+  var existingIds = {};
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    existingIds[_currentSession.exercises[i].exerciseId] = true;
+  }
+
+  // 선택된 부위들의 최신 종목 목록 (숨김 제외)
+  var latestExercises = [];
+  for (var p = 0; p < _selectedParts.length; p++) {
+    var partExs = getExercisesByPart(_selectedParts[p]);
+    for (var j = 0; j < partExs.length; j++) {
+      latestExercises.push(partExs[j]);
+    }
+  }
+
+  // 1. 새로 활성화된 종목 추가 (세션에 없는 것)
+  var maxSort = 0;
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    if (_currentSession.exercises[i].sortOrder > maxSort) {
+      maxSort = _currentSession.exercises[i].sortOrder;
+    }
+  }
+
+  for (var i = 0; i < latestExercises.length; i++) {
+    var ex = latestExercises[i];
+    if (!existingIds[ex.id]) {
+      // 새 종목 추가
+      var lastSets = getLastExerciseSets(ex.id);
+      var sets = [];
+      var numSets = ex.defaultSets;
+      if (lastSets && lastSets.length > numSets) numSets = lastSets.length;
+
+      for (var s = 0; s < numSets; s++) {
+        var prev = lastSets && lastSets[s] ? lastSets[s] : null;
+        sets.push({
+          weight: prev ? prev.weight : (ex.defaultWeight || 0),
+          reps: prev ? prev.reps : ex.defaultReps,
+          done: false,
+          isPR: false
+        });
+      }
+
+      maxSort++;
+      _currentSession.exercises.push({
+        exerciseId: ex.id,
+        sortOrder: maxSort,
+        sets: sets
+      });
+    }
+  }
+
+  // 2. 숨김 처리된 종목 제거 (단, 세트 입력이 있으면 유지)
+  var latestIds = {};
+  for (var i = 0; i < latestExercises.length; i++) {
+    latestIds[latestExercises[i].id] = true;
+  }
+
+  _currentSession.exercises = _currentSession.exercises.filter(function(exData) {
+    // 최신 목록에 있으면 유지
+    if (latestIds[exData.exerciseId]) return true;
+
+    // 최신 목록에 없지만, 완료된 세트가 있으면 유지 (기록 보존)
+    for (var k = 0; k < exData.sets.length; k++) {
+      if (exData.sets[k].done) return true;
+    }
+
+    // 입력 없는 숨김 종목은 제거
+    return false;
+  });
+
+  // sortOrder 재정렬
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    _currentSession.exercises[i].sortOrder = i;
+  }
+
+  // 현재 인덱스 보정
+  if (_currentExerciseIndex >= _currentSession.exercises.length) {
+    _currentExerciseIndex = Math.max(0, _currentSession.exercises.length - 1);
+  }
+
+  // 자동저장
+  autoSaveSession();
 }
 
 function cancelWorkout() {

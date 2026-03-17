@@ -165,7 +165,13 @@
 
       setTimeout(function() {
         cleanup(screenEl, mainView, overlay);
-        showScreen('home');
+        // 설정 화면에서 운동으로 돌아가는 경우 분기
+        if (typeof _settingsReturnTo !== 'undefined' && _settingsReturnTo === 'workout' &&
+            screenEl === document.getElementById('screen-settings')) {
+          goBackFromSettings();
+        } else {
+          showScreen('home');
+        }
       }, 300);
     } else {
       // ── 취소: 원위치로 스프링 백 ──

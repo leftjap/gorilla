@@ -1,6 +1,14 @@
 /* ═══ settings.js — 설정 화면, 종목 관리 ═══ */
 
 var _settingsSelectedPart = 'chest'; // 설정 화면에서 선택된 부위
+var _settingsReturnTo = null; // 설정 화면에서 뒤로가기 시 돌아갈 화면 ('home' | 'workout' | null)
+
+// ══ 특정 부위를 선택한 상태로 설정 화면 열기 ══
+function openSettingsForPart(partId) {
+  _settingsSelectedPart = partId;
+  _settingsReturnTo = 'workout';
+  showScreen('settings');
+}
 
 // ══ 설정 화면 렌더 ══
 function renderSettings() {
@@ -9,7 +17,7 @@ function renderSettings() {
 
   var html =
     '<div class="settings-header">' +
-      '<button class="settings-back" onclick="showScreen(\'home\')">' +
+      '<button class="settings-back" onclick="goBackFromSettings()">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
       '</button>' +
       '<span class="settings-title">종목 관리</span>' +
@@ -62,6 +70,22 @@ function renderSettings() {
   html += '<div id="addExerciseForm" style="display:none;"></div>';
 
   container.innerHTML = html;
+}
+
+// ══ 설정 화면 뒤로가기 ══
+function goBackFromSettings() {
+  var returnTo = _settingsReturnTo;
+  _settingsReturnTo = null;
+
+  if (returnTo === 'workout') {
+    // 운동 화면으로 복귀 — 종목 목록 동기화
+    if (_currentSession) {
+      syncExercisesWithSettings();
+    }
+    showScreen('workout');
+  } else {
+    showScreen('home');
+  }
 }
 
 // ══ 부위 탭 전환 ══
