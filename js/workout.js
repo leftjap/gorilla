@@ -250,12 +250,13 @@ function renderExerciseCards() {
 function renderExerciseNav() {
   var html = '<div class="exercise-nav">';
 
+  // 종목 버튼 영역 (overflow hidden으로 잘림)
+  html += '<div class="exercise-nav-scroll">';
   for (var i = 0; i < _currentSession.exercises.length; i++) {
     var exData = _currentSession.exercises[i];
     var meta = getExercise(exData.exerciseId);
     var name = meta ? meta.name : exData.exerciseId;
 
-    // 모든 세트 완료 여부
     var allDone = true;
     for (var j = 0; j < exData.sets.length; j++) {
       if (!exData.sets[j].done) {
@@ -276,9 +277,10 @@ function renderExerciseNav() {
 
     html += '<button class="' + btnClass + '" onclick="switchExercise(' + i + ')">' + btnContent + '</button>';
   }
+  html += '</div>';
 
-  // 더보기 버튼
-  html += '<button class="ex-nav-more" onclick="showExerciseListSheet()">더보기 ▸</button>';
+  // 더보기 버튼 (항상 보임)
+  html += '<button class="ex-nav-more" onclick="showExerciseListSheet()">⋯</button>';
 
   html += '</div>';
   return html;
