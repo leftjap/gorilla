@@ -109,23 +109,24 @@ function syncFromServer(callback, silent) {
         return;
       }
 
-      // 타임스탬프 비교: 서버가 로컬보다 새로운 경우에만 덮어쓰기
+      // 타임스탬프 비교: 서버가 로컬보다 엄격히 새로운 경우에만 덮어쓰기
       var serverTime = p.lastSync ? new Date(p.lastSync).getTime() : 0;
       var localTime = getLastSyncTime() ? new Date(getLastSyncTime()).getTime() : 0;
 
-      if (serverTime >= localTime) {
-        // 서버가 같거나 새로움 → 서버 데이터로 업데이트
+      console.log('동기화 비교 — 서버:', p.lastSync, '(' + serverTime + ') / 로컬:', getLastSyncTime(), '(' + localTime + ')');
+
+      if (serverTime > localTime) {
+        // 서버가 엄격히 새로움 → 서버 데이터로 업데이트
+        console.log('서버가 더 최신 — 서버 데이터 적용');
         if (p.sessions) S(K.sessions, p.sessions);
         if (p.prs) S(K.prs, p.prs);
         if (p.inbody) S(K.inbody, p.inbody);
         if (p.customExercises) S(K.customExercises, p.customExercises);
         if (p.hiddenExercises !== undefined) S(K.hiddenExercises, p.hiddenExercises);
       } else {
-        // 로컬이 더 새로움 → 서버 덮어쓰기 건너뜀, 로컬을 서버에 업로드
+        // 로컬이 같거나 더 새로움 → 서버 덮어쓰기 건너뜀
         console.log('로컬이 서버보다 최신 — 서버 덮어쓰기 건너뜀');
-        saveLastSyncTime();
-        if (!silent) showSyncToast('saved');
-        syncToServer(callback, true);
+        if (callback) callback(true);
         return;
       }
 
@@ -158,7 +159,6 @@ function syncFromServer(callback, silent) {
   .catch(function(err) {
     _syncInProgress = false;
     console.error('Sync load failed:', err);
-    // 자동 동기화 실패 시 홈에 인라인 배너 표시
     if (silent) showSyncFailBanner();
     else showSyncToast('error');
     if (callback) callback(false);

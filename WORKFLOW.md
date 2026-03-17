@@ -948,35 +948,25 @@ console.log('감시 시작');
 
 ---
 
-## 20. 서버 더미 데이터 정리 + 동기화 보호 (2026-03-17)
+## 20. 서버 더미 데이터 정리 + 동기화 보호 (2026-03-18 최종 해결)
 
 ### 근본 원인
-`initDummyData()`를 비활성화해도, GAS 서버에 이미 저장된 더미 데이터가 앱 시작 시
-`syncFromServer()`를 통해 매번 로컬에 덮어써지고 있었음.
+`initDummyData()`를 비활성화해도, GAS 서버에 이미 저장된 더미 데이터가 `syncFromServer()`를 통해 로컬에 덮어써지고 있었음. 이전 1회성 정리 코드(`wk_server_cleaned_v1`)는 로컬의 더미를 제거하지 않은 채 서버에 업로드하여 더미가 양쪽에 그대로 남는 구조적 결함이 있었음.
 
-### 수정 사항
-1. **app.js**: 1회성 서버 정리 (`wk_server_cleaned_v1` 플래그)
-   - 플래그 없으면 → 현재 로컬을 서버에 업로드 후 `syncFromServer` 건너뜀
-   - 플래그 있으면 → 정상 `syncFromServer` 실행
-2. **sync.js**: `syncFromServer`에 타임스탬프 비교 추가
-   - 서버 `lastSync` ≥ 로컬 `lastSync` → 서버 데이터 수신
-   - 서버 `lastSync` < 로컬 `lastSync` → 서버 덮어쓰기 건너뜀 + 로컬→서버 업로드
-3. **settings.js**: 설정 변경 시 `syncToServer` 호출 전에 `saveLastSyncTime()` 호출
-   - `onToggleHideExercise()`, `saveNewExercise()`, `saveExerciseIcon()` 각각에 추가
-4. **data.js**: 세션 삭제 시 `saveLastSyncTime()` 호출
-   - `deleteSessionsByDate()`, `deleteExerciseFromSession()` 각각에 추가
+### 해결 과정
+1. **수동 정리 (콘솔)**: 로컬에서 2026-03-17 실제 세션만 보존, 나머지 더미 삭제 → PR 정리 → 서버 업로드
+2. **코드 수정 (재발 방지)**:
+   - `app.js`: 불필요한 `wk_server_cleaned_v1` 1회성 정리 코드 제거
+   - `sync.js`: `syncFromServer()` 타임스탐프 비교 `>=` → `>` 변경 (같은 타임스탐프일 때 서버가 로컬을 덮어쓰지 않도록)
+   - `sync.js`: 로컬이 같거나 최신일 때 불필요한 `syncToServer()` 호출 제거
 
-### 보호 매커니즘 요약
-로컬 변경 → `saveLastSyncTime()` 즉시 → `syncToServer()` → 서버 `lastSync` 갱신
-앱 재시작 → `syncFromServer()` → 타임스탬프 비교 → 서버가 오래되면 건너뜀
+### 동기화 보호 원리
+- 로컬 변경 → `saveLastSyncTime()` → `syncToServer()` → 서버 `lastSync` 갱신
+- 앱 재시작 → `syncFromServer()` → 타임스탐프 엄격 비교 (`>`) → 서버가 엄격히 새로울 때만 덮어쓰기
 
-### 검증 체크리스트
-| 항목 | 예상 동작 |
+### 검증 완료
+| 항목 | 결과 |
 |---|---|
-| 첫 실행 후 서버에 더미 데이터 남아있지 않음 | 로컬 → 서버 업로드로 서버 정리 |
-| 두 번째 실행 시 더미 데이터 미노출 | 서버에 빈 데이터, 정상 동기화 |
-| 아이콘 URL 입력 후 앱 재시작 | 아이콘 유지 |
-| 종목 숨김 후 앱 재시작 | 숨김 상태 유지 |
-| 기록 삭제 후 앱 재시작 | 삭제 상태 유지 |
-| 오프라인에서 변경 → 온라인 복귀 | 로컬 데이터 서버에 업로드 |
-| 다른 기기에서 운동 후 동기화 | 정상 수신 |
+| 로컬 세션 | 2026-03-17 1개만 존재 |
+| 서버 세션 | 2026-03-17 1개만 존재 |
+| 앱 재시작 후 | 더미 미재발, 콘솔에 "로컬이 서버보다 최신" 확인 |

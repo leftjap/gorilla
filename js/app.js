@@ -23,18 +23,6 @@ function init() {
   // 메인 화면 표시 (로컬 데이터로 즉시)
   showScreen('home');
 
-  // 서버 더미 데이터 정리 (1회만 실행)
-  var serverCleaned = L('wk_server_cleaned_v1');
-  if (!serverCleaned) {
-    syncToServer(function(success) {
-      if (success) {
-        S('wk_server_cleaned_v1', true);
-      }
-      hideLoadingScreen();
-    }, true);
-    return;
-  }
-
   // 서버 동기화 — silent 모드
   syncFromServer(function(success) {
     if (success) {
