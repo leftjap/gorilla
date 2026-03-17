@@ -652,6 +652,8 @@ function renderSetRow(exIdx, setIdx) {
   if (setData.done) rowClass += ' set-done';
   if (setData.isPR) rowClass += ' set-pr';
 
+  var focusHandler = 'onfocus="var v=this;setTimeout(function(){v.setSelectionRange(v.value.length,v.value.length)},0)"';
+
   var html = '<tr class="' + rowClass + '" id="setRow-' + exIdx + '-' + setIdx + '">';
 
   // 세트 번호
@@ -668,7 +670,7 @@ function renderSetRow(exIdx, setIdx) {
             'value="' + (setData.reps || '') + '" ' +
             'placeholder="' + (prev ? prev.reps : (meta ? meta.defaultReps : '')) + '" ' +
             'inputmode="numeric" ' +
-            'onfocus="this.select()">' +
+            focusHandler + '>' +
           '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'reps\',1)">＋</button>' +
         '</div>' +
       '</td>';
@@ -683,7 +685,7 @@ function renderSetRow(exIdx, setIdx) {
             'value="' + (setData.weight || '') + '" ' +
             'placeholder="' + (prev ? prev.weight : '') + '" ' +
             'inputmode="decimal" ' +
-            'onfocus="this.select()">' +
+            focusHandler + '>' +
           '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'weight\',1)">＋</button>' +
         '</div>' +
       '</td>' +
@@ -696,7 +698,7 @@ function renderSetRow(exIdx, setIdx) {
             'value="' + (setData.reps || '') + '" ' +
             'placeholder="' + (prev ? prev.reps : (meta ? meta.defaultReps : '')) + '" ' +
             'inputmode="numeric" ' +
-            'onfocus="this.select()">' +
+            focusHandler + '>' +
           '<button class="set-adjust-btn" onclick="adjustSetValue(' + exIdx + ',' + setIdx + ',\'reps\',1)">＋</button>' +
         '</div>' +
       '</td>';

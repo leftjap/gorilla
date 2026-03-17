@@ -776,6 +776,9 @@ input {
   border: 1px solid var(--border-gray);
   border-radius: 8px;
   background: var(--white);
+  -webkit-user-select: none;
+  user-select: none;
+  caret-color: var(--dark);
 }
 
 /* 네이티브 숫자 스피너 숨김 */
@@ -816,6 +819,16 @@ input {
   padding: 8px 0;
   background: transparent;
   color: var(--dark);
+}
+
+.set-input::selection {
+  background: transparent;
+  color: inherit;
+}
+
+.set-input::-moz-selection {
+  background: transparent;
+  color: inherit;
 }
 
 .set-adjust-btn {
