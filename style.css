@@ -3492,7 +3492,7 @@ input {
   border: 4px solid var(--white);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 6px rgba(0, 0, 0, 0.08);
   object-fit: cover;
-  animation: loadingBounce 1.2s ease-in-out infinite;
+  animation: loadingBounce 1.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 .loading-text {
@@ -3507,11 +3507,8 @@ input {
   0%, 100% {
     transform: translateY(0);
   }
-  33% {
-    transform: translateY(-12px);
-  }
-  66% {
-    transform: translateY(-6px);
+  50% {
+    transform: translateY(-14px);
   }
 }
 
