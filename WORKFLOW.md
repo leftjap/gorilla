@@ -908,3 +908,40 @@ console.log('감시 시작');
 - [ ] 종목/루틴 편집 UI (설정 화면)
 - [ ] PWA manifest + Service Worker
 - [ ] GAS 시트 동기화
+
+---
+
+## 19. 롱프레스/탭 하이라이트 수정 (2026-03-17)
+
+### 변경 사항
+- **CSS** (`style.css`): `*` 선택자에 `-webkit-tap-highlight-color: transparent` 및 `-webkit-touch-callout: none` 추가 → 모바일 탭 시 회색 박스 전역 제거
+- **주간 캘린더** (`ui.js` `renderWeekCal`):
+  - 인라인 `onclick` 제거, `data-date` 어트리뷰트 기반 터치 핸들러로 통합
+  - 짧은 탭 시 DOM 교체(`renderWeekCal()` 재호출) 없이 CSS 클래스만 전환하여 롱프레스 타이머 유지
+  - 터치 이벤트 분기: `touchstart` → 600ms 타이머 시작, `touchend` → 타이머 완료 여부로 짧은탭/롱프레스 판정, `touchmove` → 임계값(10px) 초과 시 타이머 취소
+- **월간 캘린더** (`stats.js` `renderStatsMonthCal`, `selectStatsDate`, `renderStatsScreen`):
+  - 인라인 `onclick` 제거, 동일 패턴의 터치 핸들러 적용
+  - `selectStatsDate()`는 `renderStatsScreen()` 대신 `renderStatsWorkoutCard()`만 호출 (전체 리렌더 방지)
+  - `renderStatsScreen()` 내 기존 `bindLongPress` 호출을 인라인 터치 핸들러로 교체 (짧은탭/롱프레스 통합)
+
+### 핵심 원리
+짧은 탭(날짜 선택)과 롱프레스(삭제)를 하나의 `touchstart/touchend` 핸들러에서 분기하되, **짧은 탭 시 부모 컨테이너의 DOM을 교체하지 않아야 롱프레스 타이머가 중간에 소실되지 않음**.
+
+### 영향받는 함수
+- `renderWeekCal()` — 터치 이벤트 바인딩 로직 완전 교체
+- `selectWeekDate()` — 기존 `renderWeekCal()` 호출 유지 (호출처는 유지되나, 새로운 터치 핸들러가 주 역할 수행)
+- `selectStatsDate()` — `renderStatsScreen()` 호출 제거, `renderStatsWorkoutCard()` 호출 추가
+- `renderStatsScreen()` — 기존 `bindLongPress` 루프 제거, 인라인 터치 핸들러 추가
+
+### 검증 체크리스트
+| 항목 | 예상 동작 |
+|---|---|
+| 주간 캘린더 짧은 탭 | 날짜 선택 + 하단 카드 갱신, 회색 박스 없음 |
+| 주간 캘린더 꾹누르기 | 기록 있으면 삭제 확인 모달, 회색 박스 없음 |
+| 월간 캘린더(stats) 짧은 탭 | 날짜 선택 + 하단 운동 카드 표시, 회색 박스 없음 |
+| 월간 캘린더(stats) 꾹누르기 | 기록 있으면 삭제 확인 모달, 회색 박스 없음 |
+| 홈 화면 종목 칩 꾹누르기 | 수정/삭제 액션시트 정상 작동 |
+| stats 화면 종목 칩 꾹누르기 | 수정/삭제 액션시트 정상 작동 |
+| 모든 버튼/셀 탭 | 회색 하이라이트 미노출 |
+| stats 월 이동(◀▶) | 정상 작동 |
+| 운동 화면 → 설정 → 복귀 | 기존 플로우 정상 유지 |

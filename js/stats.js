@@ -10,66 +10,99 @@ function renderStatsScreen() {
 
   var html = '';
 
-  // 헤더 (뒤로가기 + 월 이동)
   html += renderStatsHeader();
-
-  // 요약문
   html += renderStatsSummary();
-
-  // 월간 캘린더
   html += renderStatsMonthCal();
-
-  // 선택된 날짜의 운동 카드
   html += '<div id="statsWorkoutCard" class="stats-workout-card"></div>';
-
-  // 히어로 랭킹
   html += renderStatsHeroRanking();
-
-  // 월별 볼륨 차트
   html += renderStatsMonthlyChart();
-
-  // 하단 여백
   html += '<div style="height:40px"></div>';
 
   container.innerHTML = html;
 
-  // ── 캘린더 날짜 롱프레스 바인딩 ──
+  // ── 월간 캘린더 터치 바인딩 (짧은탭 + 롱프레스 통합) ──
   var calCells = container.querySelectorAll('.stats-cal-cell:not(.empty):not(.future)');
   for (var ci = 0; ci < calCells.length; ci++) {
     (function(cell) {
       var dateStr = cell.getAttribute('data-date');
       if (!dateStr) return;
-      bindLongPress(cell, function() {
-        // 먼저 해당 날짜를 선택 상태로
-        _statsSelectedDate = dateStr;
-        renderStatsScreen();
 
-        var sessions = getSessionsByDate(dateStr);
-        if (sessions.length === 0) return;
+      var timer = null;
+      var triggered = false;
+      var startX = 0;
+      var startY = 0;
 
-        // 부위 태그 텍스트 생성
-        var tagNames = [];
-        for (var i = 0; i < sessions.length; i++) {
-          for (var j = 0; j < sessions[i].tags.length; j++) {
-            var p = getBodyPart(sessions[i].tags[j]);
-            var name = p ? p.name : sessions[i].tags[j];
-            if (tagNames.indexOf(name) < 0) tagNames.push(name);
+      cell.addEventListener('touchstart', function(e) {
+        triggered = false;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        cell.classList.add('long-pressing');
+
+        timer = setTimeout(function() {
+          triggered = true;
+          cell.classList.remove('long-pressing');
+
+          // 롱프레스: 선택 상태 반영 (DOM 교체 없이)
+          var allCells = container.querySelectorAll('.stats-cal-cell');
+          for (var k = 0; k < allCells.length; k++) {
+            allCells[k].classList.remove('selected');
           }
-        }
-        var tagText = tagNames.length > 0 ? tagNames.join(' · ') : '';
+          cell.classList.add('selected');
+          _statsSelectedDate = dateStr;
+          renderStatsWorkoutCard();
 
-        showConfirm(
-          '기록을 모두 삭제하시겠습니까?',
-          function(confirmed) {
+          var sessions = getSessionsByDate(dateStr);
+          if (sessions.length === 0) return;
+
+          showConfirm('기록을 모두 삭제하시겠습니까?', function(confirmed) {
             if (confirmed) {
               deleteSessionsByDate(dateStr);
               if (typeof syncToServer === 'function') syncToServer(null, true);
               _statsSelectedDate = null;
               renderStatsScreen();
             }
-          }
-        );
-      }, 600);
+          });
+        }, 600);
+      }, { passive: true });
+
+      cell.addEventListener('touchmove', function(e) {
+        if (!timer) return;
+        var dx = Math.abs(e.touches[0].clientX - startX);
+        var dy = Math.abs(e.touches[0].clientY - startY);
+        if (dx > 10 || dy > 10) {
+          clearTimeout(timer);
+          timer = null;
+          triggered = false;
+          cell.classList.remove('long-pressing');
+        }
+      }, { passive: true });
+
+      cell.addEventListener('touchend', function(e) {
+        if (timer) { clearTimeout(timer); timer = null; }
+        cell.classList.remove('long-pressing');
+
+        if (triggered) {
+          e.preventDefault();
+          triggered = false;
+          return;
+        }
+
+        // 짧은 탭: DOM 교체 없이 클래스 전환 + 워크아웃 카드만 갱신
+        var allCells = container.querySelectorAll('.stats-cal-cell');
+        for (var k = 0; k < allCells.length; k++) {
+          allCells[k].classList.remove('selected');
+        }
+        cell.classList.add('selected');
+        _statsSelectedDate = dateStr;
+        renderStatsWorkoutCard();
+      }, { passive: false });
+
+      cell.addEventListener('touchcancel', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        triggered = false;
+        cell.classList.remove('long-pressing');
+      }, { passive: true });
+
     })(calCells[ci]);
   }
 
@@ -193,10 +226,9 @@ function renderStatsMonthCal() {
 
     var volText = vol > 0 ? formatNum(vol) : '';
 
-    var onclick = isFuture ? '' : ' onclick="selectStatsDate(\'' + dateStr + '\')"';
-
+    // onclick 제거 — 터치 이벤트로 처리
     html +=
-      '<div class="' + cellClass + '" data-date="' + dateStr + '"' + onclick + '>' +
+      '<div class="' + cellClass + '" data-date="' + dateStr + '" data-future="' + (isFuture ? '1' : '0') + '">' +
         '<div class="stats-cal-body">' +
           '<div class="stats-cal-num">' + d + '</div>' +
           '<div class="' + volClass + '">' + volText + '</div>' +
@@ -213,7 +245,7 @@ function renderStatsMonthCal() {
 // ══ 날짜 선택 ══
 function selectStatsDate(dateStr) {
   _statsSelectedDate = dateStr;
-  renderStatsScreen();
+  renderStatsWorkoutCard();
 }
 
 // ══ 부위별 볼륨 랭킹 (히어로 카드) ══

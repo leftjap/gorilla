@@ -346,8 +346,7 @@ function renderWeekCal() {
   var todayStr = today();
   var dows = ['월', '화', '수', '목', '금', '토', '일'];
 
-  var html = '';
-  html += '<div class="week-cal">';
+  var html = '<div class="week-cal">';
   for (var i = 0; i < 7; i++) {
     var d = new Date(weekStart);
     d.setDate(d.getDate() + i);
@@ -371,10 +370,8 @@ function renderWeekCal() {
 
     var volText = vol > 0 ? formatNum(vol) : '';
 
-    var onclick = isFuture ? '' : ' onclick="selectWeekDate(\'' + dateStr + '\')"';
-
     html +=
-      '<div class="' + dayClass + '"' + onclick + '>' +
+      '<div class="' + dayClass + '" data-date="' + dateStr + '" data-future="' + (isFuture ? '1' : '0') + '">' +
         '<div class="week-day-dow">' + dows[i] + '</div>' +
         '<div class="week-day-body">' +
           '<div class="week-day-num">' + dayNum + '</div>' +
@@ -386,32 +383,94 @@ function renderWeekCal() {
 
   el.innerHTML = html;
 
-  // ── 주간 캘린더 롱프레스 바인딩 (날짜 선택 + 기록 삭제) ──
-  var weekDays = el.querySelectorAll('.week-day:not(.future)');
+  // ── 터치 바인딩 (짧은탭 + 롱프레스 통합) ──
+  var weekDays = el.querySelectorAll('.week-day');
   for (var wi = 0; wi < weekDays.length; wi++) {
-    (function(dayEl, idx) {
-      var d = new Date(weekStart);
-      d.setDate(d.getDate() + idx);
-      var dateStr = getLocalYMD(d);
+    (function(dayEl) {
+      var dateStr = dayEl.getAttribute('data-date');
+      var isFuture = dayEl.getAttribute('data-future') === '1';
+      if (isFuture) return;
 
-      bindLongPress(dayEl, function() {
-        // 먼저 해당 날짜를 선택 상태로
-        selectWeekDate(dateStr);
+      var timer = null;
+      var triggered = false;
+      var startX = 0;
+      var startY = 0;
 
-        var daySessions = getSessionsByDate(dateStr);
-        if (daySessions.length === 0) return;
+      dayEl.addEventListener('touchstart', function(e) {
+        triggered = false;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        dayEl.classList.add('long-pressing');
 
-        showConfirm('기록을 모두 삭제하시겠습니까?', function(confirmed) {
-          if (confirmed) {
-            if (typeof deleteSessionsByDate === 'function') {
-              deleteSessionsByDate(dateStr);
-            }
-            if (typeof syncToServer === 'function') syncToServer(null, true);
-            renderHome();
+        timer = setTimeout(function() {
+          triggered = true;
+          dayEl.classList.remove('long-pressing');
+
+          // 롱프레스: 선택 + 삭제 확인
+          _selectedWeekDate = dateStr;
+          renderLastWorkoutCard();
+
+          // 선택 상태 시각 반영 (DOM 교체 없이)
+          var allDays = el.querySelectorAll('.week-day');
+          for (var k = 0; k < allDays.length; k++) {
+            allDays[k].classList.remove('selected');
           }
-        });
-      }, 600);
-    })(weekDays[wi], wi);
+          dayEl.classList.add('selected');
+
+          var daySessions = getSessionsByDate(dateStr);
+          if (daySessions.length === 0) return;
+
+          showConfirm('기록을 모두 삭제하시겠습니까?', function(confirmed) {
+            if (confirmed) {
+              if (typeof deleteSessionsByDate === 'function') {
+                deleteSessionsByDate(dateStr);
+              }
+              if (typeof syncToServer === 'function') syncToServer(null, true);
+              renderHome();
+            }
+          });
+        }, 600);
+      }, { passive: true });
+
+      dayEl.addEventListener('touchmove', function(e) {
+        if (!timer) return;
+        var dx = Math.abs(e.touches[0].clientX - startX);
+        var dy = Math.abs(e.touches[0].clientY - startY);
+        if (dx > 10 || dy > 10) {
+          clearTimeout(timer);
+          timer = null;
+          triggered = false;
+          dayEl.classList.remove('long-pressing');
+        }
+      }, { passive: true });
+
+      dayEl.addEventListener('touchend', function(e) {
+        if (timer) { clearTimeout(timer); timer = null; }
+        dayEl.classList.remove('long-pressing');
+
+        if (triggered) {
+          e.preventDefault();
+          triggered = false;
+          return;
+        }
+
+        // 짧은 탭: DOM 교체 없이 클래스 전환
+        var allDays = el.querySelectorAll('.week-day');
+        for (var k = 0; k < allDays.length; k++) {
+          allDays[k].classList.remove('selected');
+        }
+        dayEl.classList.add('selected');
+        _selectedWeekDate = dateStr;
+        renderLastWorkoutCard();
+      }, { passive: false });
+
+      dayEl.addEventListener('touchcancel', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        triggered = false;
+        dayEl.classList.remove('long-pressing');
+      }, { passive: true });
+
+    })(weekDays[wi]);
   }
 }
 
