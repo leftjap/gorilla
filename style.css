@@ -3453,3 +3453,63 @@ input {
 .action-sheet-cancel:active {
   background: var(--light-gray);
 }
+
+/* ── 로딩 화면 ── */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.5s ease;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid var(--white);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), 0 1px 6px rgba(0, 0, 0, 0.08);
+  object-fit: cover;
+  animation: loadingBounce 1.2s ease-in-out infinite;
+}
+
+.loading-text {
+  margin-top: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--icon-inactive);
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(-12px);
+  }
+  66% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes loadingPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
