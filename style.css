@@ -787,6 +787,7 @@ input {
   object-fit: contain;
   flex-shrink: 0;
   mix-blend-mode: multiply;
+  background: transparent;
 }
 
 .ex-card-check {
