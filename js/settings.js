@@ -123,7 +123,7 @@ function renderSettingsExerciseList() {
       : '';
 
     html +=
-      '<div class="settings-ex-item' + (isHidden ? ' hidden-ex' : '') + '" data-exercise-id="' + ex.id + '">' +
+      '<div class="settings-ex-item' + (isHidden ? ' hidden-ex' : '') + '" data-exercise-id="' + ex.id + '"' + (isHidden ? ' data-hidden="true"' : '') + '>' +
         '<div class="settings-ex-info" onclick="openEditExerciseIconForm(\'' + ex.id + '\')" style="cursor:pointer;">' +
           '<div class="settings-ex-name-row">' +
             iconHtml +
@@ -166,6 +166,8 @@ function bindSettingsExerciseDrag() {
       var originalIdx = -1;
 
       item.addEventListener('touchstart', function(e) {
+        if (item.getAttribute('data-hidden') === 'true') return;
+
         isDragging = false;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
@@ -199,6 +201,9 @@ function bindSettingsExerciseDrag() {
           ghostEl.style.transition = 'none';
           document.body.appendChild(ghostEl);
 
+          ghostEl._startGhostTop = rect.top;
+          ghostEl._startTouchY = startY;
+
           // 원본 자리에 플레이스홀더
           placeholder = document.createElement('div');
           placeholder.className = 'settings-ex-drag-placeholder';
@@ -226,10 +231,7 @@ function bindSettingsExerciseDrag() {
         e.preventDefault();
 
         var touchY = e.touches[0].clientY;
-        var rect = ghostEl.getBoundingClientRect();
-        var offsetY = touchY - startY;
-        ghostEl.style.top = (rect.top + (touchY - (parseFloat(ghostEl._lastY) || touchY))) + 'px';
-        ghostEl._lastY = touchY;
+        ghostEl.style.top = (ghostEl._startGhostTop + (touchY - ghostEl._startTouchY)) + 'px';
 
         // 드롭 위치 찾기
         var newIdx = currentIdx;
@@ -298,7 +300,9 @@ function bindSettingsExerciseDrag() {
           var newOrder = [];
           for (var k = 0; k < newItems.length; k++) {
             var eid = newItems[k].getAttribute('data-exercise-id');
-            if (eid) newOrder.push(eid);
+            if (eid && newItems[k].getAttribute('data-hidden') !== 'true') {
+              newOrder.push(eid);
+            }
           }
 
           var orderMap = getExerciseOrder();
