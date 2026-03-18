@@ -289,6 +289,9 @@ function renderExerciseCards() {
 
   // 5. 카드 좌우 스와이프 종목 전환
   bindCardSwipe();
+
+  // 6. 활성 종목이 네비 중앙에 오도록 자동 스크롤
+  scrollNavToActive();
 }
 
 // ══ 종목 네비게이션 버튼바 ══
@@ -332,6 +335,16 @@ function switchExercise(exIdx) {
   if (exIdx < 0 || exIdx >= _currentSession.exercises.length) return;
   _currentExerciseIndex = exIdx;
   renderExerciseCards();
+}
+
+// ══ 활성 종목이 보이도록 네비 자동 스크롤 ══
+function scrollNavToActive() {
+  var scroll = document.querySelector('.exercise-nav-scroll');
+  var active = scroll ? scroll.querySelector('.ex-nav-btn.active') : null;
+  if (scroll && active) {
+    var scrollLeft = active.offsetLeft - scroll.offsetWidth / 2 + active.offsetWidth / 2;
+    scroll.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+  }
 }
 
 // ══ 전체 종목 목록 액션시트 ══
@@ -806,8 +819,13 @@ function bindCardSwipe() {
   var isSwiping = false;
   var swipeThreshold = 50;
   var card = container.querySelector('.swipe-card');
+  var disabled = false;
 
   container.addEventListener('touchstart', function(e) {
+    // 종목 네비 스크롤 영역에서 시작된 터치는 무시
+    disabled = e.target.closest('.exercise-nav-scroll') ? true : false;
+    if (disabled) return;
+
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
     currentX = 0;
@@ -816,6 +834,8 @@ function bindCardSwipe() {
   }, { passive: true });
 
   container.addEventListener('touchmove', function(e) {
+    if (disabled) return;
+
     var dx = e.touches[0].clientX - startX;
     var dy = e.touches[0].clientY - startY;
 
@@ -833,6 +853,11 @@ function bindCardSwipe() {
   }, { passive: true });
 
   container.addEventListener('touchend', function(e) {
+    if (disabled) {
+      disabled = false;
+      return;
+    }
+
     if (card) {
       card.classList.remove('swiping');
       card.style.transform = '';

@@ -568,12 +568,14 @@ input {
 
 .exercise-nav-scroll {
   display: flex;
-  gap: 8px;
-  flex: 1;
+  align-items: center;
   overflow-x: auto;
-  min-width: 0;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  padding: 0 16px;
+  scrollbar-width: none;
+  padding: 0 16px 12px;
+  gap: 0;
+  touch-action: pan-x;
 }
 
 .exercise-nav-scroll::-webkit-scrollbar {
@@ -682,6 +684,7 @@ input {
   position: relative;
   overflow: hidden;
   margin: 0 16px;
+  touch-action: pan-y;
 }
 
 .swipe-card {
