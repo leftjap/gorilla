@@ -714,6 +714,7 @@ input {
   gap: 12px;
   padding: 12px 4px;
   user-select: none;
+  background: var(--bg-gray);
 }
 
 .ex-card-header-left {
