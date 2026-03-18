@@ -325,6 +325,9 @@ function showExerciseListSheet() {
     var meta = getExercise(exData.exerciseId);
     var name = meta ? meta.name : exData.exerciseId;
 
+    // 부위 필터 적용
+    if (_headerFilterPart && meta && meta.bodyPart !== _headerFilterPart) continue;
+
     var allDone = true;
     for (var j = 0; j < exData.sets.length; j++) {
       if (!exData.sets[j].done) { allDone = false; break; }
@@ -349,7 +352,13 @@ function showExerciseListSheet() {
     })(i);
   }
 
-  showActionSheet('종목 선택', buttons);
+  var sheetTitle = '종목 선택';
+  if (_headerFilterPart) {
+    var partInfo = getBodyPart(_headerFilterPart);
+    if (partInfo) sheetTitle = partInfo.name + ' 종목';
+  }
+
+  showActionSheet(sheetTitle, buttons);
 }
 
 function renderExerciseCard(exIdx) {
@@ -666,12 +675,14 @@ function startExHeaderLongPress(exIdx, e) {
       if (exData.sets[k].done) doneCount++;
     }
     if (doneCount === 0) {
-      showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
+      showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function(confirmed) {});
       return;
     }
 
-    showConfirm(name + ' 종목을 완료하시겠습니까?', function() {
-      completeExercise(exIdx);
+    showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
+      if (confirmed) {
+        completeExercise(exIdx);
+      }
     });
   }, 500);
 
