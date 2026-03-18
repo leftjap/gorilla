@@ -178,7 +178,7 @@ function startWorkout() {
   updateWorkoutHeader(true);
   updateBottomButton('workout');
   _currentExerciseIndex = 0;
-  _headerFilterPart = null;
+  _headerFilterPart = _selectedParts.length > 0 ? _selectedParts[0] : null;
   renderExerciseCards();
   startWorkoutTimer();
 }
