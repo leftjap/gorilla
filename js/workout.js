@@ -235,11 +235,11 @@ function renderExerciseCards() {
 
   var html = '';
 
-  // 1. 현재 종목 카드 (카드헤더 + 동기부여 문구 + 세트 입력)
-  html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
-
-  // 2. 전체 종목 버튼바 (현재 종목 포함, 하단)
+  // 1. 종목 네비게이션 버튼바 (상단)
   html += renderExerciseNav();
+
+  // 2. 현재 종목 카드
+  html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
 
   // 하단 고정 버튼과 겹치지 않도록 여백
   html += '<div style="height:80px"></div>';
@@ -447,6 +447,7 @@ function renderExerciseCard(exIdx) {
               '✓' +
             '</button>' +
           '</div>' +
+          '<button class="complete-ex-btn" onclick="completeExercise(' + exIdx + ')">종목 완료 →</button>' +
         '</div>' +
       '</div>';
   } else if (isBodyweight) {
@@ -489,8 +490,11 @@ function renderExerciseCard(exIdx) {
       html += '</tbody></table>';
     }
 
-    // +세트 추가 버튼
-    html += '<button class="add-set-btn" onclick="addSet(' + exIdx + ')">+ 세트 추가</button>';
+    // 종목 완료 버튼 (세트가 1개 이상 완료되었을 때만 표시)
+    if (doneCount > 0) {
+      html += '<button class="complete-ex-btn" onclick="completeExercise(' + exIdx + ')">종목 완료 →</button>';
+    }
+
     html += '</div></div>';
   } else {
     // 웨이트
@@ -527,8 +531,11 @@ function renderExerciseCard(exIdx) {
       html += '</tbody></table>';
     }
 
-    // +세트 추가 버튼
-    html += '<button class="add-set-btn" onclick="addSet(' + exIdx + ')">+ 세트 추가</button>';
+    // 종목 완료 버튼 (세트가 1개 이상 완료되었을 때만 표시)
+    if (doneCount > 0) {
+      html += '<button class="complete-ex-btn" onclick="completeExercise(' + exIdx + ')">종목 완료 →</button>';
+    }
+
     html += '</div></div>';
   }
 
@@ -588,6 +595,40 @@ function addSet(exIdx) {
   });
 
   autoSaveSession();
+  renderExerciseCards();
+}
+
+// ══ 종목 완료 → 다음 미완료 종목으로 이동 ══
+function completeExercise(exIdx) {
+  var exData = _currentSession.exercises[exIdx];
+  if (!exData) return;
+
+  // 미완료 세트 제거 (완료된 세트만 보존)
+  exData.sets = exData.sets.filter(function(s) { return s.done; });
+
+  // 자동저장
+  autoSaveSession();
+
+  // 다음 미완료 종목 찾기
+  var nextIdx = -1;
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    if (i === exIdx) continue;
+    var ex = _currentSession.exercises[i];
+    var hasUndone = false;
+    for (var j = 0; j < ex.sets.length; j++) {
+      if (!ex.sets[j].done) { hasUndone = true; break; }
+    }
+    if (hasUndone) {
+      nextIdx = i;
+      break;
+    }
+  }
+
+  if (nextIdx >= 0) {
+    _currentExerciseIndex = nextIdx;
+  }
+  // 미완료 종목이 없으면 현재 위치 유지 (모든 종목 완료 상태)
+
   renderExerciseCards();
 }
 
@@ -833,7 +874,22 @@ function completeSet(exIdx, setIdx) {
   // 자동저장
   autoSaveSession();
 
-  // 전체 다시 렌더 (자동 세트 추가 없음)
+  // 모든 기존 세트가 완료되었으면 새 세트 자동 추가
+  var allSetsDone = true;
+  for (var k = 0; k < exData.sets.length; k++) {
+    if (!exData.sets[k].done) { allSetsDone = false; break; }
+  }
+  if (allSetsDone) {
+    var lastSet = exData.sets[exData.sets.length - 1];
+    exData.sets.push({
+      weight: lastSet ? lastSet.weight : 0,
+      reps: lastSet ? lastSet.reps : 0,
+      done: false,
+      isPR: false
+    });
+  }
+
+  // 전체 다시 렌더
   renderExerciseCards();
 }
 

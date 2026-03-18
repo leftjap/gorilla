@@ -3641,6 +3641,28 @@ input {
   border-color: var(--gray);
 }
 
+/* ── 종목 완료 버튼 ── */
+.complete-ex-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: var(--dark);
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.5px;
+}
+
+.complete-ex-btn:active {
+  background: #1a1a1a;
+  transform: scale(0.98);
+}
+
 /* ── 헤더 부위 탭 개선 ── */
 .wh-tag-improved {
   display: inline-block;
