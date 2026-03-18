@@ -9,6 +9,17 @@ var _currentExerciseIndex = 0;  // 현재 보고 있는 종목 인덱스
 var _isFinishing = false;  // finishWorkout 중복 실행 방지
 var _headerFilterPart = null;  // 헤더 부위 탭 필터 (null이면 전체)
 
+// ══ 종목 완료 여부 판정 ══
+function isExerciseComplete(exIdx) {
+  if (!_currentSession) return false;
+  var exData = _currentSession.exercises[exIdx];
+  if (!exData || exData.sets.length === 0) return false;
+  for (var i = 0; i < exData.sets.length; i++) {
+    if (!exData.sets[i].done) return false;
+  }
+  return true;
+}
+
 // ══ 화면 진입 ══
 function renderWorkoutScreen() {
   var container = document.getElementById('workoutContent');
