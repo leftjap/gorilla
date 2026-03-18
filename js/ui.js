@@ -666,9 +666,12 @@ function updateBottomButton(state) {
   btn.onmousedown = null;
   btn.onmouseup = null;
   btn.onmouseleave = null;
-  btn.ontouchstart = null;
-  btn.ontouchend = null;
-  btn.ontouchcancel = null;
+
+  // 기존 터치 이벤트 리스너 제거를 위해 새 버튼으로 교체
+  var newBtn = btn.cloneNode(false);
+  newBtn.id = btn.id;
+  btn.parentNode.replaceChild(newBtn, btn);
+  btn = newBtn;
 
   btn.style.display = 'block';
 
@@ -685,7 +688,7 @@ function updateBottomButton(state) {
       btn.disabled = false;
       btn.style.background = '#e85040';
       btn.style.color = 'var(--white)';
-      // 길게 누르기 이벤트 등록 (클릭도 여기서 처리)
+      btn.onclick = function(e) { e.preventDefault(); }; // ghost click 흡수
       setupLongPress(btn);
       break;
     case 'partSelect':
@@ -741,6 +744,7 @@ function setupLongPress(btn) {
   };
 
   var endLongPress = function(e) {
+    e.preventDefault(); // ghost click 방지
     if (_longPressTimer) {
       clearTimeout(_longPressTimer);
       _longPressTimer = null;
@@ -761,13 +765,22 @@ function setupLongPress(btn) {
   };
 
   // 터치 이벤트
-  btn.ontouchstart = startLongPress;
-  btn.ontouchend = endLongPress;
-  btn.ontouchcancel = cancelLongPress;
+  btn.addEventListener('touchstart', startLongPress, { passive: true });
+  btn.addEventListener('touchend', endLongPress, { passive: false });
+  btn.addEventListener('touchcancel', cancelLongPress, { passive: true });
 
   // 마우스 이벤트 (데스크톱 테스트용)
   btn.onmousedown = startLongPress;
-  btn.onmouseup = endLongPress;
+  btn.onmouseup = function(e) {
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
+    if (!_longPressTriggered) {
+      onBottomBtnClick();
+    }
+    _longPressTriggered = false;
+  };
   btn.onmouseleave = cancelLongPress;
 }
 
