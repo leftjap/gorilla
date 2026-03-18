@@ -274,7 +274,7 @@ function renderExerciseCards() {
   html += '</div>';
 
   // 2. 현재 종목 카드
-  html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
+  html += '<div id="exercise-cards" class="swipe-container"><div class="swipe-card">' + renderExerciseCard(_currentExerciseIndex) + '</div></div>';
 
   // 하단 여백
   html += '<div style="height:80px"></div>';
@@ -286,6 +286,9 @@ function renderExerciseCards() {
 
   // 4. 부위 탭 롱프레스(설정 진입) 바인딩
   bindPartTabLongPress();
+
+  // 5. 카드 좌우 스와이프 종목 전환
+  bindCardSwipe();
 }
 
 // ══ 종목 네비게이션 버튼바 ══
@@ -790,6 +793,74 @@ function bindLongPress(element, callback, duration) {
   element.addEventListener('touchmove', move);
   element.addEventListener('touchend', cancel);
   element.addEventListener('touchcancel', cancel);
+}
+
+// ══ 카드 좌우 스와이프 종목 전환 ══
+function bindCardSwipe() {
+  var container = document.getElementById('exercise-cards');
+  if (!container) return;
+
+  var startX = 0;
+  var startY = 0;
+  var currentX = 0;
+  var isSwiping = false;
+  var swipeThreshold = 50;
+  var card = container.querySelector('.swipe-card');
+
+  container.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    currentX = 0;
+    isSwiping = false;
+    if (card) card.classList.add('swiping');
+  }, { passive: true });
+
+  container.addEventListener('touchmove', function(e) {
+    var dx = e.touches[0].clientX - startX;
+    var dy = e.touches[0].clientY - startY;
+
+    // 세로 스크롤이 더 크면 스와이프 무시
+    if (!isSwiping && Math.abs(dy) > Math.abs(dx)) return;
+
+    if (Math.abs(dx) > 10) {
+      isSwiping = true;
+    }
+
+    if (isSwiping) {
+      currentX = dx;
+      if (card) card.style.transform = 'translateX(' + dx + 'px)';
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', function(e) {
+    if (card) {
+      card.classList.remove('swiping');
+      card.style.transform = '';
+    }
+
+    if (!isSwiping) return;
+
+    var exercises = _currentSession ? _currentSession.exercises : [];
+    var filtered = exercises;
+    if (_headerFilterPart !== null) {
+      filtered = exercises.filter(function(ex) {
+        var meta = getExercise(ex.exerciseId);
+        return meta && meta.bodyPart === _headerFilterPart;
+      });
+    }
+
+    if (currentX < -swipeThreshold) {
+      // 왼쪽 스와이프 → 다음 종목
+      if (_currentExerciseIndex < exercises.length - 1) {
+        switchExercise(_currentExerciseIndex + 1);
+      }
+    } else if (currentX > swipeThreshold) {
+      // 오른쪽 스와이프 → 이전 종목
+      if (_currentExerciseIndex > 0) {
+        switchExercise(_currentExerciseIndex - 1);
+      }
+    }
+  }, { passive: true });
 }
 
 // ══ 종목 네비 드래그 순서 변경 ══
