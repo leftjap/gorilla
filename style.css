@@ -527,7 +527,7 @@ input {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 0 16px 12px;
+  padding: 0 16px 4px;
 }
 
 .exercise-nav-part-tab {
@@ -573,7 +573,7 @@ input {
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 0 16px 12px;
+  padding: 0 16px 8px;
   gap: 0;
   touch-action: pan-x;
 }
