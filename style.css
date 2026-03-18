@@ -527,55 +527,34 @@ input {
   display: flex;
   align-items: center;
   gap: 0;
-  padding: 0 16px 8px 12px;
-}
-
-.exercise-nav-part-bar {
-  width: 4px;
-  height: 50px;
-  border-radius: 2px;
-  background: var(--accent);
-  flex-shrink: 0;
-  margin-right: 12px;
+  padding: 0 16px 12px;
 }
 
 .exercise-nav-part-tab {
-  padding: 2px 6px;
-  font-size: 16px;
-  font-weight: 400;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--gray);
-  cursor: pointer;
+  background: var(--light-gray);
   border: none;
-  background: none;
-  transition: color 0.2s ease;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
   -webkit-user-select: none;
   user-select: none;
 }
 
 .exercise-nav-part-tab.active {
-  font-weight: 400;
-  color: var(--accent);
+  background: var(--dark);
+  color: #fff;
+  font-weight: 600;
 }
 
 .exercise-nav-part-tab.long-pressing {
   transform: scale(0.95);
   opacity: 0.7;
   transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), opacity 0.2s ease;
-}
-
-.exercise-nav-pipe {
-  font-size: 14px;
-  color: var(--border-gray);
-  font-weight: 300;
-  padding: 0 2px;
-  user-select: none;
-}
-
-.exercise-nav-area-divider {
-  height: 1px;
-  background: var(--border-gray);
-  margin: 8px 16px 0 16px;
 }
 
 /* ── 종목 네비게이션 ── */
@@ -602,35 +581,40 @@ input {
 }
 
 .ex-nav-btn {
-  padding: 8px 14px;
-  border-radius: 20px;
+  padding: 6px 0;
+  border-radius: 0;
   border: none;
-  background: var(--light-gray);
-  color: var(--dark);
+  background: none;
+  color: var(--gray);
   font-size: 14px;
   font-weight: 400;
   white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
-}
-
-.ex-nav-btn:active {
-  transform: scale(0.95);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ex-nav-btn.active {
-  background: var(--accent-bg);
-  color: var(--dark);
-  font-weight: 400;
+  color: var(--accent);
+  font-weight: 600;
+  background: none;
   border: none;
   box-shadow: none;
 }
 
 .ex-nav-btn.done {
-  background: var(--border-gray);
-  color: var(--gray);
+  color: var(--border-gray);
+  text-decoration: line-through;
+  background: none;
   border: none;
+}
+
+.exercise-nav-pipe-separator {
+  color: var(--border-gray);
+  font-size: 12px;
+  padding: 0 8px;
+  flex-shrink: 0;
 }
 
 .ex-nav-more {

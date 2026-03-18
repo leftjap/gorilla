@@ -252,35 +252,26 @@ function renderExerciseCards() {
   // 1. 부위탭 + 종목네비 영역
   html += '<div class="exercise-nav-area">';
 
-  // 부위 탭 행: 세로바 + 부위 이름들 (부위 수 관계없이 항상 표시)
-  html += '<div class="exercise-nav-part-row">';
-  html += '<div class="exercise-nav-part-bar"></div>';
-
+  // 부위 탭 행: 둥근 pill 형태 (부위 수 관계없이 항상 표시)
   if (_selectedParts.length > 1) {
+    html += '<div class="exercise-nav-part-row">';
     for (var p = 0; p < _selectedParts.length; p++) {
-      if (p > 0) html += '<span class="exercise-nav-pipe">|</span>';
       var partInfo = getBodyPart(_selectedParts[p]);
-      var isActive = (_headerFilterPart === _selectedParts[p]);
-      html += '<button class="exercise-nav-part-tab' + (isActive ? ' active' : '') + '" ' +
-        'data-part-id="' + _selectedParts[p] + '" ' +
-        'onclick="filterByPart(\'' + _selectedParts[p] + '\')">' +
-        partInfo.name +
-      '</button>';
+      var isActive = _headerFilterPart === _selectedParts[p];
+      html += '<button class="exercise-nav-part-tab' + (isActive ? ' active' : '') + '" data-part-id="' + _selectedParts[p] + '" onclick="filterByPart(\'' + _selectedParts[p] + '\')">' + partInfo.name + '</button>';
     }
+    html += '</div>';
   } else if (_selectedParts.length === 1) {
+    html += '<div class="exercise-nav-part-row">';
     var partInfo = getBodyPart(_selectedParts[0]);
-    html += '<span class="exercise-nav-part-tab active" style="cursor:default;">' + partInfo.name + '</span>';
+    html += '<button class="exercise-nav-part-tab active" data-part-id="' + _selectedParts[0] + '">' + partInfo.name + '</button>';
+    html += '</div>';
   }
-
-  html += '</div>';
 
   // 종목 네비게이션
   html += renderExerciseNav();
 
   html += '</div>';
-
-  // 구분선
-  html += '<div class="exercise-nav-area-divider"></div>';
 
   // 2. 현재 종목 카드
   html += '<div id="exercise-cards">' + renderExerciseCard(_currentExerciseIndex) + '</div>';
@@ -303,6 +294,9 @@ function renderExerciseNav() {
   html += '<div class="exercise-nav-scroll" id="exNavScroll">';
 
   for (var i = 0; i < _currentSession.exercises.length; i++) {
+    if (i > 0) {
+      html += '<span class="exercise-nav-pipe-separator">|</span>';
+    }
     var exData = _currentSession.exercises[i];
     var meta = getExercise(exData.exerciseId);
     var name = meta ? meta.name : exData.exerciseId;
