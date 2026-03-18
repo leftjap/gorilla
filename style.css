@@ -783,13 +783,10 @@ input {
 .ex-card-icon {
   width: 80px;
   height: 80px;
-  border-radius: 12px;
+  border-radius: 0;
   object-fit: contain;
   flex-shrink: 0;
-  position: relative;
-  isolation: isolate;
   mix-blend-mode: multiply;
-  background: transparent;
 }
 
 .ex-card-check {
