@@ -784,6 +784,7 @@ input {
   border-radius: 8px;
   object-fit: contain;
   flex-shrink: 0;
+  mix-blend-mode: multiply;
 }
 
 .ex-card-check {
