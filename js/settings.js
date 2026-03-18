@@ -124,7 +124,7 @@ function renderSettingsExerciseList() {
 
     html +=
       '<div class="settings-ex-item' + (isHidden ? ' hidden-ex' : '') + '" data-exercise-id="' + ex.id + '"' + (isHidden ? ' data-hidden="true"' : '') + '>' +
-        '<div class="settings-ex-info" onclick="openEditExerciseIconForm(\'' + ex.id + '\')" style="cursor:pointer;">' +
+        '<div class="settings-ex-info" data-ex-id="' + ex.id + '">' +
           '<div class="settings-ex-name-row">' +
             iconHtml +
             '<span class="settings-ex-name">' + ex.name + '</span>' +
@@ -157,6 +157,7 @@ function bindSettingsExerciseDrag() {
 
       var timer = null;
       var isDragging = false;
+      var wasDragged = false;
       var startY = 0;
       var startX = 0;
       var ghostEl = null;
@@ -169,6 +170,7 @@ function bindSettingsExerciseDrag() {
         if (item.getAttribute('data-hidden') === 'true') return;
 
         isDragging = false;
+        wasDragged = false;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         item.classList.add('long-pressing');
@@ -176,14 +178,14 @@ function bindSettingsExerciseDrag() {
         timer = setTimeout(function() {
           timer = null;
           isDragging = true;
+          wasDragged = true;
           item.classList.remove('long-pressing');
+          if (navigator.vibrate) navigator.vibrate(30);
 
-          // 모든 아이템 수집
           allItems = Array.prototype.slice.call(listEl.querySelectorAll('.settings-ex-item'));
           originalIdx = allItems.indexOf(item);
           currentIdx = originalIdx;
 
-          // 고스트 생성
           var rect = item.getBoundingClientRect();
           ghostEl = item.cloneNode(true);
           ghostEl.className = 'settings-ex-item settings-ex-drag-ghost';
@@ -204,13 +206,11 @@ function bindSettingsExerciseDrag() {
           ghostEl._startGhostTop = rect.top;
           ghostEl._startTouchY = startY;
 
-          // 원본 자리에 플레이스홀더
           placeholder = document.createElement('div');
           placeholder.className = 'settings-ex-drag-placeholder';
           placeholder.style.height = rect.height + 'px';
           item.parentNode.insertBefore(placeholder, item);
           item.style.display = 'none';
-
         }, 500);
       }, { passive: true });
 
@@ -233,7 +233,6 @@ function bindSettingsExerciseDrag() {
         var touchY = e.touches[0].clientY;
         ghostEl.style.top = (ghostEl._startGhostTop + (touchY - ghostEl._startTouchY)) + 'px';
 
-        // 드롭 위치 찾기
         var newIdx = currentIdx;
         for (var j = 0; j < allItems.length; j++) {
           if (allItems[j] === item) continue;
@@ -250,7 +249,6 @@ function bindSettingsExerciseDrag() {
         }
 
         if (newIdx !== currentIdx) {
-          // 플레이스홀더 이동
           if (placeholder && placeholder.parentNode) {
             placeholder.parentNode.removeChild(placeholder);
           }
@@ -264,7 +262,6 @@ function bindSettingsExerciseDrag() {
           }
           currentIdx = newIdx;
         }
-
       }, { passive: false });
 
       item.addEventListener('touchend', function(e) {
@@ -275,26 +272,32 @@ function bindSettingsExerciseDrag() {
           timer = null;
         }
 
+        if (!isDragging && !wasDragged) {
+          // 짧은 탭 → 아이콘 편집 폼 열기
+          var infoEl = item.querySelector('.settings-ex-info');
+          var tapExId = infoEl ? infoEl.getAttribute('data-ex-id') : exId;
+          if (tapExId) {
+            openEditExerciseIconForm(tapExId);
+          }
+          return;
+        }
+
         if (!isDragging) return;
         isDragging = false;
 
-        // 고스트 제거
         if (ghostEl) {
           ghostEl.remove();
           ghostEl = null;
         }
 
-        // 원본 복원
         item.style.display = '';
 
-        // 플레이스홀더 자리에 원본 삽입
         if (placeholder && placeholder.parentNode) {
           placeholder.parentNode.insertBefore(item, placeholder);
           placeholder.remove();
           placeholder = null;
         }
 
-        // 순서 저장
         if (originalIdx !== currentIdx) {
           var newItems = listEl.querySelectorAll('.settings-ex-item');
           var newOrder = [];
@@ -320,6 +323,7 @@ function bindSettingsExerciseDrag() {
         item.classList.remove('long-pressing');
         if (timer) { clearTimeout(timer); timer = null; }
         isDragging = false;
+        wasDragged = false;
         if (ghostEl) { ghostEl.remove(); ghostEl = null; }
         if (placeholder && placeholder.parentNode) { placeholder.remove(); placeholder = null; }
         item.style.display = '';
