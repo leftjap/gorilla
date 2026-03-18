@@ -622,8 +622,8 @@ input {
 .ex-nav-btn.active {
   background: var(--accent-bg);
   color: var(--dark);
-  font-weight: 600;
-  border-color: var(--accent);
+  font-weight: 400;
+  border-color: transparent;
   box-shadow: none;
 }
 
