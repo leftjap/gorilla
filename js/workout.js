@@ -303,9 +303,11 @@ function renderExerciseNav() {
 
   for (var i = 0; i < exercises.length; i++) {
     var ex = exercises[i];
+    var meta = getExercise(ex.exerciseId);
+    if (!meta) continue;
 
     // 부위 필터 적용 시 해당 부위가 아닌 종목은 완전히 스킵
-    if (_headerFilterPart !== null && ex.bodyPart !== _headerFilterPart) continue;
+    if (_headerFilterPart !== null && meta.bodyPart !== _headerFilterPart) continue;
 
     // 첫 번째가 아닌 경우에만 파이프 추가
     if (!isFirst) {
@@ -316,7 +318,7 @@ function renderExerciseNav() {
     var cls = 'ex-nav-btn';
     if (i === _currentExerciseIndex) cls += ' active';
     else if (isExerciseComplete(i)) cls += ' done';
-    html += '<button class="' + cls + '" data-idx="' + i + '">' + ex.name + '</button>';
+    html += '<button class="' + cls + '" data-idx="' + i + '" onclick="switchExercise(' + i + ')">' + meta.name + '</button>';
   }
 
   html += '</div>';
