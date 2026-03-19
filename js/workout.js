@@ -1594,6 +1594,10 @@ function onWorkoutBack() {
   if (_editMode) {
     cancelEditMode();
   } else {
+    // 진행 중인 세션이 있으면 LocalStorage에 저장 (일시정지)
+    if (_currentSession) {
+      autoSaveSession();
+    }
     // 세션 유지한 채 홈으로 이동 (일시정지 개념)
     showScreen('home');
   }
