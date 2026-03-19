@@ -1424,7 +1424,6 @@ function autoSaveSession() {
 
 // ══ 운동 완료 ══
 function finishWorkout() {
-  // 중복 실행 방지
   if (_isFinishing) {
     console.warn('이미 완료 처리 중입니다.');
     return;
@@ -1433,28 +1432,19 @@ function finishWorkout() {
 
   _isFinishing = true;
 
-  // 경과 시간
   _currentSession.endTime = Date.now();
   _currentSession.durationMin = Math.round((_currentSession.endTime - _currentSession.startTime) / 60000);
-
-  // 칼로리
   _currentSession.totalCalories = estimateCalories(_currentSession);
 
-  // 세션 저장
   saveSession(_currentSession);
-
-  // 임시 저장 제거
   localStorage.removeItem('wk_current_session');
 
-  // 서버에 동기화 (silent 모드)
   syncToServer(null, true);
 
-  // 타이머 정리
   if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
   _workoutTimerInterval = null;
   dismissRestTimer();
 
-  // 버튼 스타일 확실히 복원
   var bottomBtn = document.getElementById('bottomBtn');
   if (bottomBtn) {
     bottomBtn.style.display = 'block';
@@ -1462,19 +1452,15 @@ function finishWorkout() {
     bottomBtn.style.opacity = '1';
   }
 
-  // 헤더 숨기기
   var workoutHeader = document.getElementById('workoutHeader');
   if (workoutHeader) workoutHeader.style.display = 'none';
 
-  // 완료 요약 표시
   renderWorkoutSummary(_currentSession);
 
-  // 히스토리: 현재 엔트리를 summary로 교체 + 1개 push
-  // popstate 리스너가 매 스와이프마다 즉시 복원하므로 2개면 충분
+  // 히스토리: replace + push 1개. popstate에서 pushState로 복원하므로 충분
   history.replaceState({ screen: 'summary' }, '');
   history.pushState({ screen: 'summary' }, '');
 
-  // 상태 초기화
   _currentSession = null;
   _selectedParts = [];
   _workoutStartTime = null;

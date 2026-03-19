@@ -953,33 +953,29 @@ window.addEventListener('popstate', function(e) {
   var state = e.state;
   var targetScreen = (state && state.screen) ? state.screen : 'home';
 
-  // ── 2. summary state가 왔는데 DOM에 요약이 없으면 (이미 떠난 뒤) 홈으로 ──
+  // ── 2. summary state인데 DOM에 없으면 홈으로 보정 ──
   if (targetScreen === 'summary') {
     history.replaceState({ screen: 'home' }, '');
     targetScreen = 'home';
   }
 
-  // ── 3. 홈 화면이 이미 보이고 있으면 차단 (앱 밖으로 빠져나가기 방지) ──
+  // ── 3. 홈 화면이 이미 보이고 있으면 무조건 차단 (targetScreen 무관) ──
   var mainView = document.getElementById('main-view');
-  if (targetScreen === 'home' && mainView && mainView.style.display !== 'none') {
+  if (mainView && mainView.style.display !== 'none') {
     history.pushState({ screen: 'home' }, '');
     return;
   }
 
   _isPopState = true;
-
-  // 화면 전환 전 정리
   _cleanupBeforeScreenSwitch();
 
-  // ── 4. 현재 상태별 뒤로 가기 처리 ──
+  // ── 4. 화면 전환 ──
   if (targetScreen === 'home') {
-    // 운동 진행 중이면 세션 보존 (일시정지)
     if (_currentSession && !_isFinishing) {
       autoSaveSession();
     }
     showScreen('home', 'none');
   } else if (targetScreen === 'workout') {
-    // 설정에서 운동으로 복귀하는 경우
     if (_currentSession && typeof syncExercisesWithSettings === 'function') {
       syncExercisesWithSettings();
     }
