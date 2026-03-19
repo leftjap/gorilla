@@ -342,8 +342,19 @@ function renderExerciseNav() {
 
 // ══ 종목 전환 ══
 function switchExercise(exIdx) {
+  if (!_currentSession) return;
   if (exIdx < 0 || exIdx >= _currentSession.exercises.length) return;
   _currentExerciseIndex = exIdx;
+
+  // 전환된 종목의 부위로 부위 탭 자동 전환
+  var meta = getExercise(_currentSession.exercises[exIdx].exerciseId);
+  if (meta && _selectedParts.length > 1) {
+    var newPart = meta.bodyPart;
+    if (_headerFilterPart !== newPart && _selectedParts.indexOf(newPart) >= 0) {
+      _headerFilterPart = newPart;
+    }
+  }
+
   renderExerciseCards();
 }
 
