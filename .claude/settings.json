@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/leftj/Documents/투자 전략/**)"
+    ]
+  }
+}

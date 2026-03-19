@@ -458,9 +458,7 @@ function renderWeekCal() {
           return;
         }
 
-        // 짧은 탭: 데이터 있는 날만 선택 전환
-        if (!hasData) return;
-
+        // 짧은 탭: 모든 날짜 선택 가능 (데이터 없는 날도 포함)
         var allDays = el.querySelectorAll('.week-day');
         for (var k = 0; k < allDays.length; k++) {
           allDays[k].classList.remove('selected');

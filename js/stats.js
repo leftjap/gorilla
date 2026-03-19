@@ -91,9 +91,7 @@ function renderStatsScreen() {
           return;
         }
 
-        // 짧은 탭: 데이터 있는 날만 선택
-        if (!hasData) return;
-
+        // 짧은 탭: 모든 날짜 선택 가능 (데이터 없는 날도 포함)
         var allCells = container.querySelectorAll('.stats-cal-cell');
         for (var k = 0; k < allCells.length; k++) {
           allCells[k].classList.remove('selected');
