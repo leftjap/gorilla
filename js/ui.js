@@ -947,6 +947,12 @@ window.addEventListener('popstate', function(e) {
 
   // state가 없으면 (히스토리 최초 엔트리) 홈으로
   if (!state || !state.screen) {
+    // 운동 완료 요약 화면이면 차단
+    var summaryEl = document.querySelector('.workout-summary');
+    if (summaryEl) {
+      history.pushState({ screen: 'summary' }, '');
+      return;
+    }
     _isPopState = true;
     _cleanupBeforeScreenSwitch();
     showScreen('home', 'none');
@@ -957,11 +963,14 @@ window.addEventListener('popstate', function(e) {
   var targetScreen = state.screen;
 
   // 운동 완료 요약 화면에서 뒤로 가기 차단
-  // summary에서 뒤로 가면 home state로 popstate가 발생하는데,
-  // 이때 다시 summary로 되돌린다
   var summaryEl = document.querySelector('.workout-summary');
   if (summaryEl && targetScreen !== 'summary') {
     history.pushState({ screen: 'summary' }, '');
+    return;
+  }
+
+  // summary 상태로 popstate가 왔으면 (이중 엔트리 소모) 아무것도 안 함
+  if (targetScreen === 'summary') {
     return;
   }
 

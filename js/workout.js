@@ -1469,8 +1469,12 @@ function finishWorkout() {
   // 완료 요약 표시
   renderWorkoutSummary(_currentSession);
 
-  // 히스토리: workout → summary로 교체 (뒤로 가기 시 home으로 가지 않도록)
+  // 히스토리: 이중 summary 엔트리로 뒤로 가기 차단
+  // [home, workout] → [summary, summary]
+  // 뒤로 가기 1회 → [summary] (여전히 summary)
+  // 뒤로 가기 2회 → popstate에서 다시 pushState로 방어
   history.replaceState({ screen: 'summary' }, '');
+  history.pushState({ screen: 'summary' }, '');
 
   // 상태 초기화
   _currentSession = null;
