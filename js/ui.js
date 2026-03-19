@@ -24,6 +24,14 @@ function showScreen(screenId, historyAction) {
   if (settingsScreen) settingsScreen.style.display = 'none';
   if (workoutHeader) workoutHeader.style.display = 'none';
 
+  // 운동 화면이 아닌 곳으로 전환할 때 운동 타이머 정지
+  if (screenId !== 'workout') {
+    if (typeof _workoutTimerInterval !== 'undefined' && _workoutTimerInterval) {
+      clearInterval(_workoutTimerInterval);
+      _workoutTimerInterval = null;
+    }
+  }
+
   if (screenId === 'home') {
     mainView.style.display = 'block';
     if (bottomBtn) bottomBtn.style.display = 'block';
@@ -940,6 +948,7 @@ window.addEventListener('popstate', function(e) {
   // state가 없으면 (히스토리 최초 엔트리) 홈으로
   if (!state || !state.screen) {
     _isPopState = true;
+    _cleanupBeforeScreenSwitch();
     showScreen('home', 'none');
     _isPopState = false;
     return;
@@ -948,6 +957,9 @@ window.addEventListener('popstate', function(e) {
   var targetScreen = state.screen;
 
   _isPopState = true;
+
+  // 화면 전환 전 정리
+  _cleanupBeforeScreenSwitch();
 
   // 현재 상태별 뒤로 가기 처리
   if (targetScreen === 'home') {
@@ -971,4 +983,45 @@ window.addEventListener('popstate', function(e) {
   }
 
   _isPopState = false;
+});
+
+// popstate 시 화면 전환 전 UI 강제 정리
+function _cleanupBeforeScreenSwitch() {
+  // 모든 화면 요소 강제 숨김 (iOS Safari BFCache 복원 대응)
+  var mainView = document.getElementById('main-view');
+  var workoutScreen = document.getElementById('screen-workout');
+  var statsScreen = document.getElementById('screen-stats');
+  var settingsScreen = document.getElementById('screen-settings');
+  var workoutHeader = document.getElementById('workoutHeader');
+
+  if (mainView) mainView.style.display = 'none';
+  if (workoutScreen) workoutScreen.style.display = 'none';
+  if (statsScreen) statsScreen.style.display = 'none';
+  if (settingsScreen) settingsScreen.style.display = 'none';
+  if (workoutHeader) workoutHeader.style.display = 'none';
+
+  // 운동 타이머 정지 (홈으로 갈 때 interval이 남아있으면 안 됨)
+  if (typeof _workoutTimerInterval !== 'undefined' && _workoutTimerInterval) {
+    clearInterval(_workoutTimerInterval);
+    _workoutTimerInterval = null;
+  }
+
+  // 휴식 타이머 정리
+  if (typeof dismissRestTimer === 'function') {
+    dismissRestTimer();
+  }
+}
+
+// iOS Safari BFCache 복원 대응
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    // BFCache에서 복원된 경우 — 히스토리 state와 화면 상태 동기화
+    var state = history.state;
+    var targetScreen = (state && state.screen) ? state.screen : 'home';
+
+    _isPopState = true;
+    _cleanupBeforeScreenSwitch();
+    showScreen(targetScreen, 'none');
+    _isPopState = false;
+  }
 });
