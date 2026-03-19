@@ -1469,11 +1469,11 @@ function finishWorkout() {
   // 완료 요약 표시
   renderWorkoutSummary(_currentSession);
 
-  // 히스토리: 이중 summary 엔트리로 뒤로 가기 차단
-  // [home, workout] → [summary, summary]
-  // 뒤로 가기 1회 → [summary] (여전히 summary)
-  // 뒤로 가기 2회 → popstate에서 다시 pushState로 방어
+  // 히스토리: 다중 summary 엔트리로 뒤로 가기 강화
+  // iOS Safari 네이티브 스와이프 방어를 위해 히스토리 스택 깊게 구성
   history.replaceState({ screen: 'summary' }, '');
+  history.pushState({ screen: 'summary' }, '');
+  history.pushState({ screen: 'summary' }, '');
   history.pushState({ screen: 'summary' }, '');
 
   // 상태 초기화

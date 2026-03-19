@@ -947,9 +947,10 @@ window.addEventListener('popstate', function(e) {
 
   // state가 없으면 (히스토리 최초 엔트리) 홈으로
   if (!state || !state.screen) {
-    // 운동 완료 요약 화면이면 차단
+    // 운동 완료 요약 화면이면 차단 (다중 pushState로 강화)
     var summaryEl = document.querySelector('.workout-summary');
     if (summaryEl) {
+      history.pushState({ screen: 'summary' }, '');
       history.pushState({ screen: 'summary' }, '');
       return;
     }
@@ -962,9 +963,10 @@ window.addEventListener('popstate', function(e) {
 
   var targetScreen = state.screen;
 
-  // 운동 완료 요약 화면에서 뒤로 가기 차단
+  // 운동 완료 요약 화면에서 뒤로 가기 차단 (다중 pushState로 강화)
   var summaryEl = document.querySelector('.workout-summary');
   if (summaryEl && targetScreen !== 'summary') {
+    history.pushState({ screen: 'summary' }, '');
     history.pushState({ screen: 'summary' }, '');
     return;
   }
