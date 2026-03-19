@@ -3869,7 +3869,7 @@ input {
   color: var(--gray);
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 22px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: all 0.2s ease;
