@@ -1,6 +1,6 @@
 {
-  "name": "Gorilla",
-  "short_name": "Gorilla",
+  "name": "Gym",
+  "short_name": "Gym",
   "description": "운동 기록 앱",
   "start_url": "./index.html",
   "display": "standalone",
