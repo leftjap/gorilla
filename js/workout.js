@@ -8,6 +8,7 @@ var _restAnimFrame = null;
 var _currentExerciseIndex = 0;  // 현재 보고 있는 종목 인덱스
 var _isFinishing = false;  // finishWorkout 중복 실행 방지
 var _headerFilterPart = null;  // 헤더 부위 탭 필터 (null이면 전체)
+var _autoSaveInterval = null;  // 30초 주기 자동저장 타이머
 
 // ══ 종목 완료 여부 판정 ══
 function isExerciseComplete(exIdx) {
@@ -139,6 +140,7 @@ function startWorkout() {
     updateBottomButton('workout');
     renderExerciseCards();
     startWorkoutTimer();
+    startPeriodicSave();
     return;
   }
 
@@ -195,6 +197,8 @@ function startWorkout() {
   _headerFilterPart = _selectedParts.length > 0 ? _selectedParts[0] : null;
   renderExerciseCards();
   startWorkoutTimer();
+  startPeriodicSave();
+  autoSaveSession();
 }
 
 // ══ 운동 경과 타이머 ══
@@ -1422,6 +1426,23 @@ function autoSaveSession() {
   S('wk_current_session', _currentSession);
 }
 
+// ══ 주기적 자동저장 (30초 간격) ══
+function startPeriodicSave() {
+  stopPeriodicSave();
+  _autoSaveInterval = setInterval(function() {
+    if (_currentSession && !_isFinishing) {
+      autoSaveSession();
+    }
+  }, 30000);
+}
+
+function stopPeriodicSave() {
+  if (_autoSaveInterval) {
+    clearInterval(_autoSaveInterval);
+    _autoSaveInterval = null;
+  }
+}
+
 // ══ 운동 완료 ══
 function finishWorkout() {
   if (_isFinishing) {
@@ -1443,6 +1464,7 @@ function finishWorkout() {
 
   if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
   _workoutTimerInterval = null;
+  stopPeriodicSave();
   dismissRestTimer();
 
   var bottomBtn = document.getElementById('bottomBtn');
@@ -1584,6 +1606,7 @@ function restoreSession() {
     if (_workoutStartTime && !_workoutTimerInterval) {
       startWorkoutTimer();
     }
+    startPeriodicSave();
     return true;
   }
   return false;
@@ -1697,6 +1720,7 @@ function cancelWorkout() {
 
   // 타이머 정리
   if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
+  stopPeriodicSave();
   dismissRestTimer();
 
   // 상태 초기화
