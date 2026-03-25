@@ -195,7 +195,14 @@
         cleanup(screenEl, mainView, overlay);
 
         if (backTarget === 'settings-to-workout') {
-          goBackFromSettings();
+          // settings 화면을 명시적으로 숨기고 운동 화면으로 전환
+          screenEl.style.display = 'none';
+          if (mainView) mainView.style.display = 'none';
+          _settingsReturnTo = null;
+          if (typeof syncExercisesWithSettings === 'function') {
+            syncExercisesWithSettings();
+          }
+          showScreen('workout', 'replace');
         } else if (backTarget === 'workout-back') {
           onWorkoutBack();
         } else {
