@@ -4028,6 +4028,6 @@ input {
   }
 
   .rest-timer-bar {
-    bottom: 8px !important;
+    display: none !important;
   }
 }
