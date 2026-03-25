@@ -117,6 +117,16 @@ function syncFromServer(callback, silent) {
       console.log('동기화 비교 — 서버:', p.lastSync, '(' + serverTime + ') / 로컬:', getLastSyncTime(), '(' + localTime + ')');
 
       if (serverTime > localTime) {
+        // 안전장치: 로컬 세션이 서버보다 5개 이상 많으면 덮어쓰기 차단
+        var localCount = localSessions.length;
+        var serverCount = serverSessions.length;
+        if (localCount - serverCount >= 5) {
+          console.warn('동기화 차단 — 로컬(' + localCount + '개)이 서버(' + serverCount + '개)보다 5개 이상 많음. 로컬 데이터를 서버에 업로드합니다.');
+          saveLastSyncTime();
+          syncToServer(callback, silent);
+          return;
+        }
+
         // 서버가 엄격히 새로움 → 서버 데이터로 업데이트
         console.log('서버가 더 최신 — 서버 데이터 적용');
         if (p.sessions) S(K.sessions, p.sessions);
