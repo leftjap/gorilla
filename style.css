@@ -1213,7 +1213,7 @@ input {
 /* ── 휴식 타이머 ── */
 .rest-timer-bar {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+  bottom: calc(max(8px, env(safe-area-inset-bottom)) + 80px);
   left: 20px;
   right: 20px;
   z-index: 150;
@@ -3159,7 +3159,7 @@ input {
 /* ── 운동 시작 버튼 ── */
 .start-workout {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  bottom: max(8px, env(safe-area-inset-bottom));
   left: 20px;
   right: 20px;
   height: 72px;
