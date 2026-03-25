@@ -338,7 +338,10 @@ function renderExerciseNav() {
 
     var cls = 'ex-nav-btn';
     if (i === _currentExerciseIndex) cls += ' active';
-    else if (isExerciseComplete(i)) cls += ' done';
+    else if (isExerciseComplete(i)) {
+      var _navMeta = getExercise(ex.exerciseId);
+      if (!_navMeta || _navMeta.equipment !== 'cardio') cls += ' done';
+    }
     html += '<button class="' + cls + '" data-idx="' + i + '" onclick="switchExercise(' + i + ')">' + meta.name + '</button>';
   }
 
