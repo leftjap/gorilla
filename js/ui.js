@@ -159,9 +159,9 @@ function renderLastWorkoutCard() {
   // 선택된 날짜의 세션
   var sessions = getSessionsByDate(_selectedWeekDate);
 
-  // 선택된 날짜에 세션이 없고 오늘이면 가장 최근 세션 1건
+  // 선택된 날짜에 세션이 없으면 가장 최근 세션 1건 표시
   var displayDate = _selectedWeekDate;
-  if (sessions.length === 0 && _selectedWeekDate === today()) {
+  if (sessions.length === 0) {
     var lastSession = getLastSession();
     if (lastSession) {
       sessions = [lastSession];
