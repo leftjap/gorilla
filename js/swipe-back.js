@@ -194,26 +194,11 @@
       setTimeout(function() {
         cleanup(screenEl, mainView, overlay);
 
+        // 모든 경로에서 history.back() 사용 → popstate 핸들러가 화면 전환 처리
         if (backTarget === 'settings-to-workout') {
-          screenEl.style.display = 'none';
-          if (mainView) mainView.style.display = 'none';
           _settingsReturnTo = null;
-          if (typeof syncExercisesWithSettings === 'function') {
-            syncExercisesWithSettings();
-          }
-          showScreen('workout', 'replace');
-        } else if (backTarget === 'workout-back') {
-          // 운동 화면을 명시적으로 숨기고 세션 자동저장
-          screenEl.style.display = 'none';
-          var workoutHeader = document.getElementById('workoutHeader');
-          if (workoutHeader) workoutHeader.style.display = 'none';
-          if (typeof _currentSession !== 'undefined' && _currentSession) {
-            if (typeof autoSaveSession === 'function') autoSaveSession();
-          }
-          showScreen('home', 'replace');
-        } else {
-          showScreen('home');
         }
+        history.back();
       }, 300);
     } else {
       _screenEl.style.transform = 'translateX(0px)';
