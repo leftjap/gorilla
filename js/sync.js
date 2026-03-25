@@ -3,16 +3,16 @@
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby9cBU92KAnTveGQWtALcbTmpExMKvSbtkvyC6vdWZttt8kEIEmxaTuTHan474rbzA3/exec';
 var GAS_TOKEN = 'gym2026';
 var _syncInProgress = false;
+var _syncRetryCount = 0;
+var _syncRetryTimer = null;
 
 // ══ 서버에 데이터 저장 ══
-// silent: true이면 성공 시 토스트 미표시 (자동 동기화용)
 function syncToServer(callback, silent) {
   if (_syncInProgress) {
     if (callback) callback(false);
     return;
   }
 
-  // 오프라인이면 시도하지 않음
   if (!navigator.onLine) {
     if (!silent) showSyncToast('offline');
     if (callback) callback(false);
@@ -20,6 +20,10 @@ function syncToServer(callback, silent) {
   }
 
   _syncInProgress = true;
+  // 새 저장 요청이 오면 기존 재시도 취소
+  clearTimeout(_syncRetryTimer);
+  _syncRetryCount = 0;
+
   if (!silent) showSyncToast('saving');
 
   var payload = {
@@ -50,11 +54,13 @@ function syncToServer(callback, silent) {
     _syncInProgress = false;
     if (result.status === 'ok') {
       saveLastSyncTime();
+      _syncRetryCount = 0;
       if (!silent) showSyncToast('saved');
       if (callback) callback(true);
     } else {
       console.error('Sync save error:', result.message);
       if (!silent) showSyncToast('error');
+      _scheduleSyncRetry(silent);
       if (callback) callback(false);
     }
   })
@@ -62,18 +68,32 @@ function syncToServer(callback, silent) {
     _syncInProgress = false;
     console.error('Sync save failed:', err);
     if (!silent) showSyncToast('error');
+    _scheduleSyncRetry(silent);
     if (callback) callback(false);
   });
 }
 
-// ══ 서버에서 데이터 불러오기 ══
+function _scheduleSyncRetry(silent) {
+  var delays = [5000, 15000, 45000];
+  if (_syncRetryCount >= delays.length) {
+    console.warn('syncToServer 재시도 한도 초과 (' + delays.length + '회)');
+    return;
+  }
+  var delay = delays[_syncRetryCount];
+  _syncRetryCount++;
+  console.log('syncToServer 재시도 ' + _syncRetryCount + '/' + delays.length + ' (' + (delay / 1000) + '초 후)');
+  _syncRetryTimer = setTimeout(function() {
+    syncToServer(null, silent);
+  }, delay);
+}
+
+// ══ 서버에서 데이터 불러오기 (ID 기반 병합) ══
 function syncFromServer(callback, silent) {
   if (_syncInProgress) {
     if (callback) callback(false);
     return;
   }
 
-  // 오프라인이면 시도하지 않음
   if (!navigator.onLine) {
     if (!silent) showSyncToast('offline');
     if (callback) callback(false);
@@ -99,10 +119,10 @@ function syncFromServer(callback, silent) {
     if (result.status === 'ok' && result.payload) {
       var p = result.payload;
 
-      // 서버 데이터가 비어있으면 (첫 사용) 로컬 → 서버로 업로드
       var serverSessions = p.sessions || [];
       var localSessions = L(K.sessions) || [];
 
+      // 서버 비어있고 로컬에 데이터 있으면 → 로컬을 서버에 업로드
       if (serverSessions.length === 0 && localSessions.length > 0) {
         saveLastSyncTime();
         if (!silent) showSyncToast('saved');
@@ -110,39 +130,95 @@ function syncFromServer(callback, silent) {
         return;
       }
 
-      // 타임스탬프 비교: 서버가 로컬보다 엄격히 새로운 경우에만 덮어쓰기
-      var serverTime = p.lastSync ? new Date(p.lastSync).getTime() : 0;
-      var localTime = getLastSyncTime() ? new Date(getLastSyncTime()).getTime() : 0;
-
-      console.log('동기화 비교 — 서버:', p.lastSync, '(' + serverTime + ') / 로컬:', getLastSyncTime(), '(' + localTime + ')');
-
-      if (serverTime > localTime) {
-        // 안전장치: 로컬 세션이 서버보다 5개 이상 많으면 덮어쓰기 차단
-        var localCount = localSessions.length;
-        var serverCount = serverSessions.length;
-        if (localCount - serverCount >= 5) {
-          console.warn('동기화 차단 — 로컬(' + localCount + '개)이 서버(' + serverCount + '개)보다 5개 이상 많음. 로컬 데이터를 서버에 업로드합니다.');
-          saveLastSyncTime();
-          syncToServer(callback, silent);
-          return;
-        }
-
-        // 서버가 엄격히 새로움 → 서버 데이터로 업데이트
-        console.log('서버가 더 최신 — 서버 데이터 적용');
-        if (p.sessions) S(K.sessions, p.sessions);
-        if (p.prs) S(K.prs, p.prs);
-        if (p.inbody) S(K.inbody, p.inbody);
-        if (p.customExercises) S(K.customExercises, p.customExercises);
-        if (p.hiddenExercises !== undefined) S(K.hiddenExercises, p.hiddenExercises);
-        if (p.exerciseOrder) S('wk_exercise_order', p.exerciseOrder);
-      } else {
-        // 로컬이 같거나 더 새로움 → 서버 덮어쓰기 건너뜀
-        console.log('로컬이 서버보다 최신 — 서버 덮어쓰기 건너뜀');
-        if (callback) callback(true);
-        return;
+      // ── 세션 ID 기반 병합 ──
+      var localMap = {};
+      for (var i = 0; i < localSessions.length; i++) {
+        localMap[localSessions[i].id] = localSessions[i];
       }
 
-      // exerciseIcons: 서버와 로컬을 병합 (로컬 우선)
+      var merged = [];
+      var usedIds = {};
+
+      // 1) 서버 세션 순회: 로컬에도 있으면 endTime 비교, 없으면 추가
+      for (var j = 0; j < serverSessions.length; j++) {
+        var ss = serverSessions[j];
+        if (!ss.id) continue;
+        var ls = localMap[ss.id];
+        if (ls) {
+          // 양쪽에 존재 → endTime이 큰 쪽 채택
+          var sEnd = ss.endTime || 0;
+          var lEnd = ls.endTime || 0;
+          merged.push(sEnd > lEnd ? ss : ls);
+        } else {
+          // 서버에만 존재 → 빈 세션 필터링 후 추가
+          if (ss.totalVolume > 0 || ss.durationMin > 0 || ss.totalCalories > 5) {
+            merged.push(ss);
+          }
+        }
+        usedIds[ss.id] = true;
+      }
+
+      // 2) 로컬에만 있는 세션 유지
+      for (var k = 0; k < localSessions.length; k++) {
+        if (!usedIds[localSessions[k].id]) {
+          merged.push(localSessions[k]);
+        }
+      }
+
+      // 정렬: 날짜 내림차순, 같은 날짜면 startTime 내림차순
+      merged.sort(function(a, b) {
+        var dc = (b.date || '').localeCompare(a.date || '');
+        if (dc !== 0) return dc;
+        return (b.startTime || 0) - (a.startTime || 0);
+      });
+
+      S(K.sessions, merged);
+
+      // ── PR: 서버와 로컬 병합 (exerciseId별, 더 높은 기록 유지) ──
+      if (p.prs) {
+        var localPrs = L(K.prs) || {};
+        var serverPrs = p.prs;
+        var mergedPrs = {};
+        // 로컬 PR 복사
+        var prKeys = Object.keys(localPrs);
+        for (var pi = 0; pi < prKeys.length; pi++) {
+          mergedPrs[prKeys[pi]] = localPrs[prKeys[pi]];
+        }
+        // 서버 PR 병합
+        var sPrKeys = Object.keys(serverPrs);
+        for (var si = 0; si < sPrKeys.length; si++) {
+          var exId = sPrKeys[si];
+          if (!mergedPrs[exId]) {
+            mergedPrs[exId] = serverPrs[exId];
+          } else {
+            // 양쪽에 있으면 서버 항목 중 로컬에 없는 것만 추가
+            var localArr = mergedPrs[exId];
+            var serverArr = serverPrs[exId];
+            if (Array.isArray(serverArr) && Array.isArray(localArr)) {
+              var localSessIds = {};
+              for (var li = 0; li < localArr.length; li++) {
+                localSessIds[localArr[li].sessionId || ''] = true;
+              }
+              for (var sj = 0; sj < serverArr.length; sj++) {
+                if (!localSessIds[serverArr[sj].sessionId || '']) {
+                  localArr.push(serverArr[sj]);
+                }
+              }
+              mergedPrs[exId] = localArr;
+            }
+          }
+        }
+        S(K.prs, mergedPrs);
+      }
+
+      // ── 기타 데이터: 서버가 있으면 적용 ──
+      if (p.inbody) S(K.inbody, p.inbody);
+      if (p.customExercises) S(K.customExercises, p.customExercises);
+      if (p.hiddenExercises !== undefined) S(K.hiddenExercises, p.hiddenExercises);
+      if (p.exerciseOrder) S('wk_exercise_order', p.exerciseOrder);
+      if (p.settings) S(K.settings, p.settings);
+
+      // exerciseIcons: 서버와 로컬 병합 (로컬 우선)
       var serverIcons = p.exerciseIcons || {};
       var localIcons = L(K.exerciseIcons) || {};
       var mergedIcons = {};
@@ -151,15 +227,20 @@ function syncFromServer(callback, silent) {
         mergedIcons[iconKeys[ik]] = serverIcons[iconKeys[ik]];
       }
       var localIconKeys = Object.keys(localIcons);
-      for (var ik = 0; ik < localIconKeys.length; ik++) {
-        if (localIcons[localIconKeys[ik]]) {
-          mergedIcons[localIconKeys[ik]] = localIcons[localIconKeys[ik]];
+      for (var ik2 = 0; ik2 < localIconKeys.length; ik2++) {
+        if (localIcons[localIconKeys[ik2]]) {
+          mergedIcons[localIconKeys[ik2]] = localIcons[localIconKeys[ik2]];
         }
       }
       S(K.exerciseIcons, mergedIcons);
-      if (p.settings) S(K.settings, p.settings);
 
       saveLastSyncTime();
+
+      // 병합 후 로컬에만 있던 세션이 있으면 서버에도 반영
+      if (merged.length > serverSessions.length) {
+        syncToServer(null, true);
+      }
+
       if (!silent) showSyncToast('loaded');
       if (callback) callback(true);
     } else {
