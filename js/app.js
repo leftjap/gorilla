@@ -1,10 +1,5 @@
 /* ═══ app.js — 초기화, 진입점 ═══ */
 
-// iOS PWA(standalone) 감지
-if (window.navigator.standalone === true) {
-  document.documentElement.classList.add('ios-pwa');
-}
-
 function hideLoadingScreen() {
   var loading = document.getElementById('loadingScreen');
   if (!loading) return;
@@ -15,6 +10,11 @@ function hideLoadingScreen() {
 }
 
 function init() {
+  // iOS PWA standalone 감지 — safe-area env() 우회용
+  if (window.navigator.standalone === true) {
+    document.documentElement.classList.add('ios-pwa');
+  }
+
   // 데이터 마이그레이션 (부위/종목 ID 변환, 1회만 실행)
   migrateData();
 

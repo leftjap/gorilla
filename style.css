@@ -4028,3 +4028,28 @@ input {
     z-index: 99999;
   }
 }
+
+/* ── iOS PWA standalone: env(safe-area-inset-bottom) 우회 ── */
+.ios-pwa .start-workout {
+  bottom: 42px;
+}
+
+.ios-pwa .rest-timer-bar {
+  bottom: 122px;
+}
+
+.ios-pwa .screens-container {
+  padding-bottom: calc(60px + 34px);
+}
+
+.ios-pwa .stats-screen-content {
+  padding-bottom: calc(40px + 34px);
+}
+
+.ios-pwa .settings-content {
+  padding-bottom: calc(40px + 34px);
+}
+
+.ios-pwa .sync-toast {
+  bottom: calc(34px + 80px);
+}
