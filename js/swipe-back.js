@@ -6,11 +6,11 @@
   // ── 설정 ──
   var EDGE_WIDTH    = 30;   // 왼쪽 가장자리 인식 영역 (px)
   var THRESHOLD     = 0.35; // 화면 너비의 35% 이상 밀면 확정
-  var PEEK_OFFSET   = 80;   // 홈 화면 뒤에서 시작하는 오프셋 (px)
+  var PEEK_OFFSET   = 80;   // 뒤 화면이 시작하는 오프셋 (px)
 
   // ── 상태 ──
   var _tracking     = false;
-  var _blocking     = false; // 차단 모드 (에지 터치를 먹어서 네이티브 스와이프 방지)
+  var _blocking     = false;
   var _startX       = 0;
   var _startY       = 0;
   var _currentX     = 0;
@@ -18,15 +18,14 @@
   var _isHorizontal = false;
   var _screenEl     = null;
   var _overlay      = null;
-  var _mainView     = null;
+  var _peekEl       = null;
+  var _peekElOriginalDisplay = '';
   var _screenWidth  = 0;
   var _backTarget   = null;
 
   // ── 스와이프 차단 대상인지 판단 ──
   function shouldBlockSwipe() {
-    // 요약 화면
     if (document.querySelector('.workout-summary')) return true;
-    // 홈 화면 (main-view가 보이고 다른 화면이 안 보일 때)
     var mainView = document.getElementById('main-view');
     var workout  = document.getElementById('screen-workout');
     var stats    = document.getElementById('screen-stats');
@@ -62,6 +61,14 @@
     return null;
   }
 
+  // ── peek 대상 화면 결정 ──
+  function getPeekElement(backTarget) {
+    if (backTarget === 'settings-to-workout') {
+      return document.getElementById('screen-workout');
+    }
+    return document.getElementById('main-view');
+  }
+
   // ── 오버레이 생성 ──
   function createOverlay() {
     var overlay = document.getElementById('swipeBackOverlay');
@@ -78,11 +85,8 @@
   function onTouchStart(e) {
     var touch = e.touches[0];
 
-    // 왼쪽 가장자리에서만 처리
     if (touch.clientX > EDGE_WIDTH) return;
 
-    // 차단 대상 화면이면 touchstart에서 바로 preventDefault
-    // iOS Safari는 touchstart에서 preventDefault해야 네이티브 에지 스와이프가 차단됨
     if (shouldBlockSwipe()) {
       _blocking = true;
       _tracking = false;
@@ -95,6 +99,9 @@
     var swipeable = getSwipeableScreen();
     if (!swipeable) return;
 
+    // 스와이프 가능 화면에서도 preventDefault → iOS 네이티브 에지 스와이프 차단
+    e.preventDefault();
+
     _tracking     = true;
     _decided      = false;
     _isHorizontal = false;
@@ -104,13 +111,13 @@
     _screenEl     = swipeable.el;
     _backTarget   = swipeable.back;
     _screenWidth  = window.innerWidth;
-    _mainView     = document.getElementById('main-view');
+    _peekEl       = getPeekElement(swipeable.back);
+    _peekElOriginalDisplay = _peekEl ? _peekEl.style.display : '';
     _overlay      = createOverlay();
   }
 
   // ── 터치 이동 ──
   function onTouchMove(e) {
-    // 차단 모드: 보조 방어선
     if (_blocking) {
       e.preventDefault();
       return;
@@ -135,9 +142,9 @@
       _screenEl.classList.add('swiping');
       _overlay.classList.add('visible');
 
-      if (_mainView) {
-        _mainView.style.display = 'block';
-        _mainView.classList.add('swipe-peek');
+      if (_peekEl) {
+        _peekEl.style.display = 'block';
+        _peekEl.classList.add('swipe-peek');
       }
     }
 
@@ -148,10 +155,10 @@
 
     _screenEl.style.transform = 'translateX(' + translateX + 'px)';
 
-    if (_mainView) {
+    if (_peekEl) {
       var progress = Math.min(translateX / _screenWidth, 1);
       var peekX = -PEEK_OFFSET * (1 - progress);
-      _mainView.style.transform = 'translateX(' + peekX + 'px)';
+      _peekEl.style.transform = 'translateX(' + peekX + 'px)';
     }
 
     if (_overlay) {
@@ -179,38 +186,34 @@
     var confirmed = progress >= THRESHOLD;
 
     _screenEl.classList.add('swipe-animating');
-    if (_mainView) _mainView.classList.add('swipe-animating');
+    if (_peekEl) _peekEl.classList.add('swipe-animating');
+
+    var screenEl   = _screenEl;
+    var peekEl     = _peekEl;
+    var overlay    = _overlay;
+    var backTarget = _backTarget;
+    var origDisplay = _peekElOriginalDisplay;
 
     if (confirmed) {
-      _screenEl.style.transform = 'translateX(' + _screenWidth + 'px)';
-      if (_mainView) _mainView.style.transform = 'translateX(0px)';
-      if (_overlay) _overlay.style.opacity = '0';
-
-      var screenEl = _screenEl;
-      var mainView = _mainView;
-      var overlay  = _overlay;
-      var backTarget = _backTarget;
+      screenEl.style.transform = 'translateX(' + _screenWidth + 'px)';
+      if (peekEl) peekEl.style.transform = 'translateX(0px)';
+      if (overlay) overlay.style.opacity = '0';
 
       setTimeout(function() {
-        cleanup(screenEl, mainView, overlay);
+        cleanup(screenEl, peekEl, overlay, origDisplay);
 
-        // 모든 경로에서 history.back() 사용 → popstate 핸들러가 화면 전환 처리
         if (backTarget === 'settings-to-workout') {
           _settingsReturnTo = null;
         }
         history.back();
       }, 300);
     } else {
-      _screenEl.style.transform = 'translateX(0px)';
-      if (_mainView) _mainView.style.transform = 'translateX(-' + PEEK_OFFSET + 'px)';
-      if (_overlay) _overlay.style.opacity = '0.1';
-
-      var screenEl = _screenEl;
-      var mainView = _mainView;
-      var overlay  = _overlay;
+      screenEl.style.transform = 'translateX(0px)';
+      if (peekEl) peekEl.style.transform = 'translateX(-' + PEEK_OFFSET + 'px)';
+      if (overlay) overlay.style.opacity = '0.1';
 
       setTimeout(function() {
-        cleanup(screenEl, mainView, overlay);
+        cleanup(screenEl, peekEl, overlay, origDisplay);
       }, 300);
     }
 
@@ -218,14 +221,15 @@
   }
 
   // ── 정리 ──
-  function cleanup(screenEl, mainView, overlay) {
+  function cleanup(screenEl, peekEl, overlay, origDisplay) {
     if (screenEl) {
       screenEl.classList.remove('swiping', 'swipe-animating');
       screenEl.style.transform = '';
     }
-    if (mainView) {
-      mainView.classList.remove('swipe-peek', 'swipe-animating');
-      mainView.style.transform = '';
+    if (peekEl) {
+      peekEl.classList.remove('swipe-peek', 'swipe-animating');
+      peekEl.style.transform = '';
+      peekEl.style.display = origDisplay;
     }
     if (overlay) {
       overlay.classList.remove('visible');
@@ -234,7 +238,6 @@
   }
 
   // ── 이벤트 등록 ──
-  // touchstart: passive:false 필수 — iOS Safari에서 preventDefault()로 에지 스와이프 차단하려면
   document.addEventListener('touchstart', onTouchStart, { passive: false });
   document.addEventListener('touchmove', onTouchMove, { passive: false });
   document.addEventListener('touchend', onTouchEnd, { passive: true });
@@ -244,14 +247,19 @@
       return;
     }
     if (_tracking && _screenEl && _isHorizontal) {
-      _screenEl.classList.add('swipe-animating');
-      _screenEl.style.transform = 'translateX(0px)';
-      if (_mainView) {
-        _mainView.classList.add('swipe-animating');
-        _mainView.style.transform = 'translateX(-' + PEEK_OFFSET + 'px)';
+      var screenEl = _screenEl;
+      var peekEl = _peekEl;
+      var overlay = _overlay;
+      var origDisplay = _peekElOriginalDisplay;
+
+      screenEl.classList.add('swipe-animating');
+      screenEl.style.transform = 'translateX(0px)';
+      if (peekEl) {
+        peekEl.classList.add('swipe-animating');
+        peekEl.style.transform = 'translateX(-' + PEEK_OFFSET + 'px)';
       }
       setTimeout(function() {
-        cleanup(_screenEl, _mainView, _overlay);
+        cleanup(screenEl, peekEl, overlay, origDisplay);
       }, 300);
     }
     _tracking = false;

@@ -1565,7 +1565,7 @@ function startRestTimer(seconds) {
     bottomBtn.style.visibility = 'hidden';
     bottomBtn.style.opacity = '0';
   }
-  el.style.bottom = 'calc(max(20px, env(safe-area-inset-bottom) + 20px))';
+  el.style.bottom = 'calc(env(safe-area-inset-bottom, 0px) + 12px)';
 
   // 초기 HTML 한 번만 세팅
   el.innerHTML =
