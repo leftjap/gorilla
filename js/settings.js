@@ -298,6 +298,11 @@ function bindSettingsExerciseDrag() {
         }
 
         if (!isDragging && !wasDragged) {
+          // 토글 버튼 탭이면 아이콘 편집 열지 않음
+          var touchTarget = e.target;
+          if (touchTarget.closest('.settings-ex-toggle')) {
+            return;
+          }
           // 부위 탭 하이라이트 제거
           var ptabs = document.querySelectorAll('.settings-part-tab');
           for (var t = 0; t < ptabs.length; t++) {
