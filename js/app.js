@@ -1,5 +1,10 @@
 /* ═══ app.js — 초기화, 진입점 ═══ */
 
+// iOS PWA(standalone) 감지
+if (window.navigator.standalone === true) {
+  document.documentElement.classList.add('ios-pwa');
+}
+
 function hideLoadingScreen() {
   var loading = document.getElementById('loadingScreen');
   if (!loading) return;
