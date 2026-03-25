@@ -962,17 +962,26 @@ window.addEventListener('popstate', function(e) {
     targetScreen = 'home';
   }
 
-  // ── 3. 홈 화면이 이미 보이고 있으면 무조건 차단 (targetScreen 무관) ──
-  var mainView = document.getElementById('main-view');
-  if (mainView && mainView.style.display !== 'none') {
-    history.pushState({ screen: 'home' }, '');
-    return;
+  // ── 3. 홈→홈 불필요 전환 차단 (깜빡임 방지) ──
+  // 타겟이 홈이고, 다른 화면이 모두 안 보이면 이미 홈 상태 → 스킵
+  if (targetScreen === 'home') {
+    var workoutScreen = document.getElementById('screen-workout');
+    var statsScreen = document.getElementById('screen-stats');
+    var settingsScreen = document.getElementById('screen-settings');
+    var otherVisible = (workoutScreen && workoutScreen.style.display !== 'none') ||
+                       (statsScreen && statsScreen.style.display !== 'none') ||
+                       (settingsScreen && settingsScreen.style.display !== 'none');
+    if (!otherVisible) {
+      history.pushState({ screen: 'home' }, '');
+      return;
+    }
   }
 
+  // ── 4. 모든 화면을 먼저 정리 (스와이프 애니메이션 잔여 상태 제거) ──
   _isPopState = true;
   _cleanupBeforeScreenSwitch();
 
-  // ── 4. 화면 전환 ──
+  // ── 5. 화면 전환 ──
   if (targetScreen === 'home') {
     if (_currentSession && !_isFinishing) {
       autoSaveSession();
