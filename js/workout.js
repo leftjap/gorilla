@@ -620,7 +620,7 @@ function renderExerciseCard(exIdx) {
       // 초기 또는 추가 세트 시작 상태
       html +=
           '<div class="cardio-start-area">' +
-            '<button class="cardio-start-btn" onclick="startCardioTimer(' + exIdx + ')">▶ ' + (doneSets.length > 0 ? '추가 시작' : '시작') + '</button>' +
+            '<button class="cardio-start-btn" onclick="startCardioTimer(' + exIdx + ')">▶ ' + (doneSets.length > 0 ? '다시 시작' : '시작') + '</button>' +
           '</div>' +
           '<div class="cardio-manual">' +
             '<span class="cardio-manual-label">또는 직접 입력</span>' +
@@ -1505,6 +1505,9 @@ function completeCardio(exIdx) {
   if (_currentSession.exercises[exIdx]._cardioTimer) {
     delete _currentSession.exercises[exIdx]._cardioTimer;
   }
+
+  // 새 미완료 세트 자동 추가 (다음 직접 입력/타이머 시작용)
+  exData.sets.push({ weight: 0, reps: 0, done: false, isPR: false });
 
   autoSaveSession();
   renderExerciseCards();
