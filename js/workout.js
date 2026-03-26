@@ -51,11 +51,9 @@ function renderPartSelector() {
   _selectedParts = [];
   _selectedExercises = {};
 
-  // workoutHeader 숨기고 컨텐츠 내부 헤더 사용
   var workoutHeader = document.getElementById('workoutHeader');
   if (workoutHeader) workoutHeader.style.display = 'none';
 
-  // 컨텐츠 패딩을 홈과 동일하게 변경
   container.style.padding = '';
   container.className = 'workout-content workout-select-mode';
 
@@ -70,7 +68,7 @@ function renderPartSelector() {
         '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
       '</button>' +
     '</div>' +
-    '<div class="part-selector">' +
+    '<div class="part-selector" style="display:flex;flex-direction:column;flex:1;min-height:0">' +
       '<div class="exercise-select-tabs" id="exSelectTabs">';
 
   for (var i = 0; i < BODY_PARTS.length; i++) {
@@ -81,7 +79,9 @@ function renderPartSelector() {
 
   html +=
       '</div>' +
-      '<div class="exercise-select-chips" id="exSelectList"></div>' +
+      '<div class="ex-select-scroll">' +
+        '<div class="exercise-select-chips" id="exSelectList"></div>' +
+      '</div>' +
       '<div class="ex-select-chosen" id="exSelectChosen"></div>' +
     '</div>';
 
@@ -156,10 +156,20 @@ function renderSelectedChosen() {
   var el = document.getElementById('exSelectChosen');
   if (!el) return;
 
-  // 선택된 종목을 부위별로 그룹핑
-  var groups = {}; // { partId: [{ id, name }] }
-  var totalCount = 0;
+  var hidden = getHiddenExercises();
+
+  // hidden 종목은 _selectedExercises에서 자동 제거
   var keys = Object.keys(_selectedExercises);
+  for (var i = 0; i < keys.length; i++) {
+    if (hidden.indexOf(keys[i]) >= 0) {
+      delete _selectedExercises[keys[i]];
+    }
+  }
+
+  // 선택된 종목을 부위별로 그룹핑
+  var groups = {};
+  var totalCount = 0;
+  keys = Object.keys(_selectedExercises);
   for (var i = 0; i < keys.length; i++) {
     if (!_selectedExercises[keys[i]]) continue;
     var meta = getExercise(keys[i]);
@@ -177,7 +187,6 @@ function renderSelectedChosen() {
   var html = '<div class="ex-select-chosen-title">선택한 종목</div>';
   html += '<div class="ex-select-chosen-list">';
 
-  // BODY_PARTS 순서대로 출력
   for (var pi = 0; pi < BODY_PARTS.length; pi++) {
     var partId = BODY_PARTS[pi].id;
     var items = groups[partId];
