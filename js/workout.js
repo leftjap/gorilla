@@ -521,9 +521,13 @@ function renderExerciseNav() {
     html += '<button class="' + cls + '" data-idx="' + i + '" onclick="switchExercise(' + i + ')">' + meta.name + '</button>';
   }
 
-  html += '</div>';
-  html += '<button class="ex-nav-more" onclick="showAddExerciseSheet()">+</button>';
-  html += '</div>';
+  // 마지막 종목 뒤에 파이프 + "+" 텍스트 버튼 (네비 스크롤 안에 포함)
+  if (!isFirst) {
+    html += '<span class="exercise-nav-pipe-separator">|</span>';
+  }
+  html += '<button class="ex-nav-btn ex-nav-add" onclick="showAddExerciseSheet()">+</button>';
+  html += '</div>';  // exercise-nav-scroll 닫기
+  html += '</div>';  // exercise-nav 닫기
   return html;
 }
 

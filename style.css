@@ -623,28 +623,20 @@ input {
   flex-shrink: 0;
 }
 
-.ex-nav-more {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--border-gray);
-  background: var(--white);
+.ex-nav-add {
   color: var(--gray);
-  font-size: 16px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  font-size: 18px;
+  font-weight: 500;
+  padding: 6px 0;
   flex-shrink: 0;
-  margin-left: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
-.ex-nav-more:active {
-  background: var(--light-gray);
-  border-color: var(--dark);
+.ex-nav-add:active {
   color: var(--dark);
 }
 
