@@ -55,9 +55,9 @@
       return { el: settings, back: 'home' };
     }
     if (workout && workout.style.display !== 'none') {
-      // 종목 추가 모드이면 추가 모드만 닫기
+      // 종목 추가 모드에서는 스와이프 뒤로가기 차단
       if (typeof _addExerciseMode !== 'undefined' && _addExerciseMode) {
-        return { el: workout, back: 'add-exercise-back' };
+        return null;
       }
       return { el: workout, back: 'workout-back' };
     }
