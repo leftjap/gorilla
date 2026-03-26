@@ -4142,3 +4142,38 @@ input {
   color: var(--gray);
   text-align: center;
 }
+
+/* ── 종목 선택 칩 ── */
+.exercise-select-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+}
+
+.ex-select-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--border-gray);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--dark);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+
+.ex-select-chip:active {
+  opacity: 0.6;
+}
+
+.ex-select-chip.selected {
+  background: var(--dark);
+  color: var(--white);
+  border-color: var(--dark);
+  font-weight: 600;
+}

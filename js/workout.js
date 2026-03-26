@@ -50,13 +50,10 @@ function renderPartSelector() {
   _selectedParts = [];
   _selectedExercises = {};
 
-  // 첫 번째 부위를 기본 탭으로
   var defaultPart = BODY_PARTS[0].id;
 
   var html =
     '<div class="part-selector">' +
-      '<div class="part-selector-title">오늘의 운동</div>' +
-      '<div class="part-selector-sub">부위를 선택하고 종목을 고르세요</div>' +
       '<div class="exercise-select-tabs" id="exSelectTabs">';
 
   for (var i = 0; i < BODY_PARTS.length; i++) {
@@ -67,12 +64,25 @@ function renderPartSelector() {
 
   html +=
       '</div>' +
-      '<div class="exercise-select-list" id="exSelectList"></div>' +
+      '<div class="exercise-select-chips" id="exSelectList"></div>' +
       '<div class="exercise-select-summary" id="exSelectSummary"></div>' +
     '</div>';
 
   container.innerHTML = html;
-  updateWorkoutHeader(false);
+
+  // 헤더: 타이머 숨김, 우상단에 더보기 버튼
+  var workoutHeader = document.getElementById('workoutHeader');
+  if (workoutHeader) workoutHeader.style.display = 'flex';
+  var timerEl = document.getElementById('workoutTimer');
+  if (timerEl) timerEl.style.display = 'none';
+  var tagsEl = document.getElementById('workoutTags');
+  if (tagsEl) {
+    tagsEl.innerHTML =
+      '<button class="wh-settings-btn" onclick="showHiddenExerciseSheet()">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+      '</button>';
+  }
+
   renderSelectList(defaultPart);
 }
 
@@ -106,7 +116,7 @@ function renderSelectList(partId) {
     return;
   }
 
-  // 기본 체크 결정: 이 부위가 포함된 마지막 세션에서 사용한 종목
+  // 기본 체크: 이 부위가 포함된 마지막 세션에서 사용한 종목
   var lastUsedIds = {};
   var hasLastData = false;
   var sessions = getSessions();
@@ -127,21 +137,13 @@ function renderSelectList(partId) {
   var html = '';
   for (var i = 0; i < exercises.length; i++) {
     var ex = exercises[i];
-    // 초기 체크 상태 결정
     if (_selectedExercises[ex.id] === undefined) {
       _selectedExercises[ex.id] = hasLastData ? (lastUsedIds[ex.id] === true) : true;
     }
     var isChecked = _selectedExercises[ex.id] === true;
-    var itemClass = 'exercise-select-item' + (isChecked ? ' checked' : '');
+    var chipClass = 'ex-select-chip' + (isChecked ? ' selected' : '');
 
-    html +=
-      '<div class="' + itemClass + '" onclick="toggleSelectExercise(\'' + ex.id + '\',\'' + partId + '\')">' +
-        '<div class="exercise-select-check">' + (isChecked ? '✓' : '') + '</div>' +
-        '<div class="exercise-select-info">' +
-          '<div class="exercise-select-name">' + ex.name + '</div>' +
-          '<div class="exercise-select-meta">' + (EQUIPMENT[ex.equipment] || ex.equipment) + '</div>' +
-        '</div>' +
-      '</div>';
+    html += '<button class="' + chipClass + '" onclick="toggleSelectExercise(\'' + ex.id + '\',\'' + partId + '\')">' + ex.name + '</button>';
   }
 
   container.innerHTML = html;
@@ -200,6 +202,63 @@ function updateSelectButton() {
   } else {
     updateBottomButton('partSelect');
   }
+}
+
+function showHiddenExerciseSheet() {
+  // 현재 활성 탭의 부위 ID 가져오기
+  var activeTab = document.querySelector('.exercise-select-tab.active');
+  var partId = activeTab ? activeTab.getAttribute('data-part') : BODY_PARTS[0].id;
+
+  // 해당 부위의 숨김 종목 찾기
+  var hidden = getHiddenExercises();
+  var allExercises = EXERCISES.filter(function(e) {
+    var overrides = getPartOverrides();
+    var effectivePart = overrides[e.id] || e.bodyPart;
+    return effectivePart === partId && hidden.indexOf(e.id) >= 0;
+  });
+
+  // 커스텀 종목 중 숨김 상태인 것도 포함
+  var customHidden = (getCustomExercises() || []).filter(function(e) {
+    return e.bodyPart === partId && hidden.indexOf(e.id) >= 0;
+  });
+  allExercises = allExercises.concat(customHidden);
+
+  if (allExercises.length === 0) {
+    // 숨김 종목 없으면 설정 화면으로
+    openSettingsForPart(partId);
+    return;
+  }
+
+  var partInfo = getBodyPart(partId);
+  var title = (partInfo ? partInfo.name : '') + ' 숨김 종목';
+
+  var buttons = [];
+  for (var i = 0; i < allExercises.length; i++) {
+    (function(ex) {
+      var alreadySelected = _selectedExercises[ex.id] === true;
+      buttons.push({
+        text: (alreadySelected ? '✓ ' : '') + ex.name,
+        onClick: function() {
+          // 숨김 해제 + 선택
+          if (isExerciseHidden(ex.id)) {
+            toggleHideExercise(ex.id);
+          }
+          _selectedExercises[ex.id] = true;
+          renderSelectList(partId);
+        }
+      });
+    })(allExercises[i]);
+  }
+
+  // 종목 설정 바로가기
+  buttons.push({
+    text: '종목 설정',
+    onClick: function() {
+      openSettingsForPart(partId);
+    }
+  });
+
+  showActionSheet(title, buttons);
 }
 
 // ══ 운동 시작 ══
