@@ -4039,7 +4039,8 @@ input {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .ex-select-header {
@@ -4064,10 +4065,9 @@ input {
 }
 
 .ex-select-scroll {
-  flex: 1;
+  min-height: 40vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  min-height: 0;
 }
 
 .ex-select-chosen-title {
