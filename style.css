@@ -4031,3 +4031,114 @@ input {
     bottom: 8px !important;
   }
 }
+
+/* ── 종목 선택 화면 ── */
+.exercise-select-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 0 0 16px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.exercise-select-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.exercise-select-tab {
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: none;
+  background: var(--light-gray);
+  color: var(--gray);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.exercise-select-tab.active {
+  background: var(--dark);
+  color: var(--white);
+  font-weight: 600;
+}
+
+.exercise-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.exercise-select-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--light-gray);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.exercise-select-item:active {
+  opacity: 0.6;
+}
+
+.exercise-select-item.checked .exercise-select-check {
+  background: var(--dark);
+  color: var(--white);
+  border-color: var(--dark);
+}
+
+.exercise-select-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.exercise-select-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.exercise-select-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dark);
+  line-height: 1.3;
+}
+
+.exercise-select-meta {
+  font-size: 12px;
+  color: var(--icon-inactive);
+  margin-top: 2px;
+}
+
+.exercise-select-empty {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--icon-inactive);
+  font-size: 14px;
+}
+
+.exercise-select-summary {
+  padding: 16px 0 0 0;
+}
+
+.exercise-select-summary-text {
+  font-size: 13px;
+  color: var(--gray);
+  text-align: center;
+}

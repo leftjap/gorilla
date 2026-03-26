@@ -10,6 +10,7 @@ var _isFinishing = false;  // finishWorkout 중복 실행 방지
 var _headerFilterPart = null;  // 헤더 부위 탭 필터 (null이면 전체)
 var _autoSaveInterval = null;  // 30초 주기 자동저장 타이머
 var _cardioTimers = {};  // 유산소 스톱워치 상태 { exIdx: { startedAt, elapsed, running, intervalId } }
+var _selectedExercises = {};  // 종목 선택 화면 체크 상태 { exerciseId: true/false }
 
 // ══ 종목 완료 여부 판정 ══
 function isExerciseComplete(exIdx) {
@@ -47,94 +48,162 @@ function renderWorkoutScreen() {
 function renderPartSelector() {
   var container = document.getElementById('workoutContent');
   _selectedParts = [];
+  _selectedExercises = {};
+
+  // 첫 번째 부위를 기본 탭으로
+  var defaultPart = BODY_PARTS[0].id;
 
   var html =
     '<div class="part-selector">' +
       '<div class="part-selector-title">오늘의 운동</div>' +
-      '<div class="part-selector-sub">부위를 순서대로 선택하세요</div>' +
-      '<div class="part-tags" id="partTags">';
+      '<div class="part-selector-sub">부위를 선택하고 종목을 고르세요</div>' +
+      '<div class="exercise-select-tabs" id="exSelectTabs">';
 
   for (var i = 0; i < BODY_PARTS.length; i++) {
     var p = BODY_PARTS[i];
-    html +=
-      '<button class="part-tag" id="pt-' + p.id + '" onclick="togglePart(\'' + p.id + '\')" ' +
-        'style="--c:' + p.color + ';--bg:' + p.bg + '">' +
-        p.name +
-      '</button>';
+    var isActive = p.id === defaultPart;
+    html += '<button class="exercise-select-tab' + (isActive ? ' active' : '') + '" data-part="' + p.id + '" onclick="switchSelectTab(\'' + p.id + '\')">' + p.name + '</button>';
   }
 
   html +=
       '</div>' +
-      '<div class="workout-timeline" id="partOrder"></div>' +
+      '<div class="exercise-select-list" id="exSelectList"></div>' +
+      '<div class="exercise-select-summary" id="exSelectSummary"></div>' +
     '</div>';
 
   container.innerHTML = html;
   updateWorkoutHeader(false);
+  renderSelectList(defaultPart);
 }
 
 function togglePart(partId) {
-  var idx = _selectedParts.indexOf(partId);
-  var el = document.getElementById('pt-' + partId);
+  // 이 함수는 더 이상 사용하지 않음. switchSelectTab으로 대체.
+  switchSelectTab(partId);
+}
 
-  if (idx >= 0) {
-    _selectedParts.splice(idx, 1);
-    if (el) el.classList.remove('selected');
-  } else {
-    _selectedParts.push(partId);
-    if (el) el.classList.add('selected');
+function renderWorkoutTimeline() {
+  // 이 함수는 더 이상 사용하지 않음. renderSelectSummary로 대체.
+}
+
+function switchSelectTab(partId) {
+  var tabs = document.querySelectorAll('.exercise-select-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].classList.remove('active');
+    if (tabs[i].getAttribute('data-part') === partId) {
+      tabs[i].classList.add('active');
+    }
+  }
+  renderSelectList(partId);
+}
+
+function renderSelectList(partId) {
+  var container = document.getElementById('exSelectList');
+  if (!container) return;
+
+  var exercises = getExercisesByPart(partId);
+  if (exercises.length === 0) {
+    container.innerHTML = '<div class="exercise-select-empty">종목이 없습니다</div>';
+    return;
   }
 
-  // 타임라인 업데이트
-  renderWorkoutTimeline();
+  // 기본 체크 결정: 이 부위가 포함된 마지막 세션에서 사용한 종목
+  var lastUsedIds = {};
+  var hasLastData = false;
+  var sessions = getSessions();
+  for (var si = 0; si < sessions.length; si++) {
+    var s = sessions[si];
+    if (s.tags.indexOf(partId) >= 0) {
+      for (var ei = 0; ei < s.exercises.length; ei++) {
+        var meta = getExercise(s.exercises[ei].exerciseId);
+        if (meta && meta.bodyPart === partId) {
+          lastUsedIds[s.exercises[ei].exerciseId] = true;
+          hasLastData = true;
+        }
+      }
+      break;
+    }
+  }
 
-  // 하단 버튼 상태 업데이트
-  if (_selectedParts.length > 0) {
+  var html = '';
+  for (var i = 0; i < exercises.length; i++) {
+    var ex = exercises[i];
+    // 초기 체크 상태 결정
+    if (_selectedExercises[ex.id] === undefined) {
+      _selectedExercises[ex.id] = hasLastData ? (lastUsedIds[ex.id] === true) : true;
+    }
+    var isChecked = _selectedExercises[ex.id] === true;
+    var itemClass = 'exercise-select-item' + (isChecked ? ' checked' : '');
+
+    html +=
+      '<div class="' + itemClass + '" onclick="toggleSelectExercise(\'' + ex.id + '\',\'' + partId + '\')">' +
+        '<div class="exercise-select-check">' + (isChecked ? '✓' : '') + '</div>' +
+        '<div class="exercise-select-info">' +
+          '<div class="exercise-select-name">' + ex.name + '</div>' +
+          '<div class="exercise-select-meta">' + (EQUIPMENT[ex.equipment] || ex.equipment) + '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  container.innerHTML = html;
+  updateSelectButton();
+  renderSelectSummary();
+}
+
+function toggleSelectExercise(exerciseId, partId) {
+  _selectedExercises[exerciseId] = !_selectedExercises[exerciseId];
+  renderSelectList(partId);
+}
+
+function renderSelectSummary() {
+  var el = document.getElementById('exSelectSummary');
+  if (!el) return;
+
+  var count = 0;
+  var partSet = {};
+  var keys = Object.keys(_selectedExercises);
+  for (var i = 0; i < keys.length; i++) {
+    if (_selectedExercises[keys[i]]) {
+      count++;
+      var meta = getExercise(keys[i]);
+      if (meta && !partSet[meta.bodyPart]) {
+        partSet[meta.bodyPart] = true;
+      }
+    }
+  }
+
+  if (count === 0) {
+    el.innerHTML = '';
+    return;
+  }
+
+  var partNames = [];
+  var partIds = Object.keys(partSet);
+  for (var i = 0; i < partIds.length; i++) {
+    var p = getBodyPart(partIds[i]);
+    if (p) partNames.push(p.name);
+  }
+
+  el.innerHTML =
+    '<div class="exercise-select-summary-text">' +
+      partNames.join(' · ') + ' — ' + count + '종목 선택' +
+    '</div>';
+}
+
+function updateSelectButton() {
+  var count = 0;
+  var keys = Object.keys(_selectedExercises);
+  for (var i = 0; i < keys.length; i++) {
+    if (_selectedExercises[keys[i]]) count++;
+  }
+  if (count > 0) {
     updateBottomButton('partSelectReady');
   } else {
     updateBottomButton('partSelect');
   }
 }
 
-function renderWorkoutTimeline() {
-  var orderEl = document.getElementById('partOrder');
-  if (!orderEl) return;
-
-  if (_selectedParts.length === 0) {
-    orderEl.innerHTML = '<div class="workout-timeline-empty">부위를 선택하면 운동 순서가 표시됩니다</div>';
-    return;
-  }
-
-  var html = '<div class="workout-timeline-title">운동 순서</div><div class="workout-timeline-list">';
-
-  for (var i = 0; i < _selectedParts.length; i++) {
-    var p = getBodyPart(_selectedParts[i]);
-    var exercises = getExercisesByPart(_selectedParts[i]);
-    var exNames = [];
-    for (var j = 0; j < exercises.length; j++) {
-      exNames.push(exercises[j].name);
-    }
-
-    html +=
-      '<div class="workout-timeline-item">' +
-        '<div class="workout-timeline-line">' +
-          '<div class="workout-timeline-num">' + (i + 1) + '</div>' +
-          '<div class="workout-timeline-connector"></div>' +
-        '</div>' +
-        '<div class="workout-timeline-content">' +
-          '<div class="workout-timeline-part">' + p.name + '</div>' +
-          '<div class="workout-timeline-exercises">' + exNames.join(', ') + '</div>' +
-        '</div>' +
-      '</div>';
-  }
-
-  html += '</div>';
-  orderEl.innerHTML = html;
-}
-
 // ══ 운동 시작 ══
 function startWorkout() {
-  if (_selectedParts.length === 0) return;
-
   // 이미 진행 중인 세션이 있으면 바로 운동 화면으로 전환
   if (_currentSession) {
     updateWorkoutHeader(true);
@@ -145,6 +214,26 @@ function startWorkout() {
     return;
   }
 
+  // 선택된 종목 수집
+  var selectedIds = [];
+  var keys = Object.keys(_selectedExercises);
+  for (var i = 0; i < keys.length; i++) {
+    if (_selectedExercises[keys[i]]) selectedIds.push(keys[i]);
+  }
+  if (selectedIds.length === 0) return;
+
+  // 선택된 종목에서 부위 태그 자동 수집
+  var tagSet = {};
+  var tagList = [];
+  for (var i = 0; i < selectedIds.length; i++) {
+    var meta = getExercise(selectedIds[i]);
+    if (meta && !tagSet[meta.bodyPart]) {
+      tagSet[meta.bodyPart] = true;
+      tagList.push(meta.bodyPart);
+    }
+  }
+  _selectedParts = tagList;
+
   _workoutStartTime = Date.now();
 
   // 세션 객체 생성
@@ -153,7 +242,7 @@ function startWorkout() {
     date: today(),
     startTime: _workoutStartTime,
     endTime: null,
-    tags: _selectedParts.slice(),
+    tags: tagList.slice(),
     exercises: [],
     totalVolume: 0,
     totalVolumeExWarmup: 0,
@@ -162,40 +251,54 @@ function startWorkout() {
     memo: ''
   };
 
-  // 선택 순서대로 종목 추가
-  var sortIdx = 0;
-  for (var i = 0; i < _selectedParts.length; i++) {
-    var exs = getExercisesByPart(_selectedParts[i]);
-    for (var j = 0; j < exs.length; j++) {
-      var ex = exs[j];
-      var lastSets = getLastExerciseSets(ex.id);
-      var sets = [];
+  // 부위 순서대로 종목 정렬 (BODY_PARTS 순서 → 부위 내 sortOrder 순서)
+  var partOrder = {};
+  for (var i = 0; i < BODY_PARTS.length; i++) {
+    partOrder[BODY_PARTS[i].id] = i;
+  }
 
-      var numSets = ex.defaultSets;
-      if (lastSets && lastSets.length > numSets) numSets = lastSets.length;
+  var sortedExercises = [];
+  for (var i = 0; i < selectedIds.length; i++) {
+    var meta = getExercise(selectedIds[i]);
+    if (meta) sortedExercises.push(meta);
+  }
+  sortedExercises.sort(function(a, b) {
+    var pa = partOrder[a.bodyPart] !== undefined ? partOrder[a.bodyPart] : 99;
+    var pb = partOrder[b.bodyPart] !== undefined ? partOrder[b.bodyPart] : 99;
+    if (pa !== pb) return pa - pb;
+    return (a.sortOrder || 0) - (b.sortOrder || 0);
+  });
 
-      for (var s = 0; s < numSets; s++) {
-        var prev = lastSets && lastSets[s] ? lastSets[s] : null;
-        sets.push({
-          weight: prev ? prev.weight : (ex.defaultWeight || 0),
-          reps: prev ? prev.reps : ex.defaultReps,
-          done: false,
-          isPR: false
-        });
-      }
+  // 종목 추가
+  for (var i = 0; i < sortedExercises.length; i++) {
+    var ex = sortedExercises[i];
+    var lastSets = getLastExerciseSets(ex.id);
+    var sets = [];
 
-      _currentSession.exercises.push({
-        exerciseId: ex.id,
-        sortOrder: sortIdx++,
-        sets: sets
+    var numSets = ex.defaultSets;
+    if (lastSets && lastSets.length > numSets) numSets = lastSets.length;
+
+    for (var s = 0; s < numSets; s++) {
+      var prev = lastSets && lastSets[s] ? lastSets[s] : null;
+      sets.push({
+        weight: prev ? prev.weight : (ex.defaultWeight || 0),
+        reps: prev ? prev.reps : ex.defaultReps,
+        done: false,
+        isPR: false
       });
     }
+
+    _currentSession.exercises.push({
+      exerciseId: ex.id,
+      sortOrder: i,
+      sets: sets
+    });
   }
 
   updateWorkoutHeader(true);
   updateBottomButton('workout');
   _currentExerciseIndex = 0;
-  _headerFilterPart = _selectedParts.length > 0 ? _selectedParts[0] : null;
+  _headerFilterPart = tagList.length > 0 ? tagList[0] : null;
   renderExerciseCards();
   startWorkoutTimer();
   startPeriodicSave();
