@@ -30,15 +30,16 @@ function renderWorkoutScreen() {
 
   var workoutHeader = document.getElementById('workoutHeader');
 
-  // 진행 중인 세션이 있으면 세트 입력 화면, 없으면 부위 선택
   if (_currentSession) {
+    // 운동 진행 모드: 기존 패딩 복원
+    container.className = 'workout-content';
+    container.style.padding = '';
     if (workoutHeader) workoutHeader.style.display = 'flex';
     updateWorkoutHeader(true);
     updateBottomButton('workout');
     renderExerciseCards();
   } else {
-    if (workoutHeader) workoutHeader.style.display = 'flex';
-    updateWorkoutHeader(false);
+    // 종목 선택 모드
     updateBottomButton('partSelect');
     renderPartSelector();
   }
@@ -50,9 +51,25 @@ function renderPartSelector() {
   _selectedParts = [];
   _selectedExercises = {};
 
+  // workoutHeader 숨기고 컨텐츠 내부 헤더 사용
+  var workoutHeader = document.getElementById('workoutHeader');
+  if (workoutHeader) workoutHeader.style.display = 'none';
+
+  // 컨텐츠 패딩을 홈과 동일하게 변경
+  container.style.padding = '';
+  container.className = 'workout-content workout-select-mode';
+
   var defaultPart = BODY_PARTS[0].id;
 
   var html =
+    '<div class="ex-select-header">' +
+      '<button class="summary-msg-icon" onclick="onWorkoutBack()">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+      '</button>' +
+      '<button class="summary-msg-icon" onclick="showHiddenExerciseSheet()">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+      '</button>' +
+    '</div>' +
     '<div class="part-selector">' +
       '<div class="exercise-select-tabs" id="exSelectTabs">';
 
@@ -65,24 +82,10 @@ function renderPartSelector() {
   html +=
       '</div>' +
       '<div class="exercise-select-chips" id="exSelectList"></div>' +
-      '<div class="exercise-select-summary" id="exSelectSummary"></div>' +
+      '<div class="ex-select-chosen" id="exSelectChosen"></div>' +
     '</div>';
 
   container.innerHTML = html;
-
-  // 헤더: 타이머 숨김, 우상단에 더보기 버튼
-  var workoutHeader = document.getElementById('workoutHeader');
-  if (workoutHeader) workoutHeader.style.display = 'flex';
-  var timerEl = document.getElementById('workoutTimer');
-  if (timerEl) timerEl.style.display = 'none';
-  var tagsEl = document.getElementById('workoutTags');
-  if (tagsEl) {
-    tagsEl.innerHTML =
-      '<button class="wh-settings-btn" onclick="showHiddenExerciseSheet()">' +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
-      '</button>';
-  }
-
   renderSelectList(defaultPart);
 }
 
@@ -116,29 +119,12 @@ function renderSelectList(partId) {
     return;
   }
 
-  // 기본 체크: 이 부위가 포함된 마지막 세션에서 사용한 종목
-  var lastUsedIds = {};
-  var hasLastData = false;
-  var sessions = getSessions();
-  for (var si = 0; si < sessions.length; si++) {
-    var s = sessions[si];
-    if (s.tags.indexOf(partId) >= 0) {
-      for (var ei = 0; ei < s.exercises.length; ei++) {
-        var meta = getExercise(s.exercises[ei].exerciseId);
-        if (meta && meta.bodyPart === partId) {
-          lastUsedIds[s.exercises[ei].exerciseId] = true;
-          hasLastData = true;
-        }
-      }
-      break;
-    }
-  }
-
   var html = '';
   for (var i = 0; i < exercises.length; i++) {
     var ex = exercises[i];
+    // 이 부위 탭을 처음 열 때만 초기값 세팅 (미선택)
     if (_selectedExercises[ex.id] === undefined) {
-      _selectedExercises[ex.id] = hasLastData ? (lastUsedIds[ex.id] === true) : true;
+      _selectedExercises[ex.id] = false;
     }
     var isChecked = _selectedExercises[ex.id] === true;
     var chipClass = 'ex-select-chip' + (isChecked ? ' selected' : '');
@@ -148,47 +134,66 @@ function renderSelectList(partId) {
 
   container.innerHTML = html;
   updateSelectButton();
-  renderSelectSummary();
+  renderSelectedChosen();
 }
 
 function toggleSelectExercise(exerciseId, partId) {
   _selectedExercises[exerciseId] = !_selectedExercises[exerciseId];
-  renderSelectList(partId);
+
+  // 현재 활성 탭 확인
+  var activeTab = document.querySelector('.exercise-select-tab.active');
+  var currentPart = activeTab ? activeTab.getAttribute('data-part') : partId;
+
+  renderSelectList(currentPart);
 }
 
 function renderSelectSummary() {
-  var el = document.getElementById('exSelectSummary');
+  // 이 함수는 더 이상 사용하지 않음. renderSelectedChosen으로 대체.
+  renderSelectedChosen();
+}
+
+function renderSelectedChosen() {
+  var el = document.getElementById('exSelectChosen');
   if (!el) return;
 
-  var count = 0;
-  var partSet = {};
+  // 선택된 종목을 부위별로 그룹핑
+  var groups = {}; // { partId: [{ id, name }] }
+  var totalCount = 0;
   var keys = Object.keys(_selectedExercises);
   for (var i = 0; i < keys.length; i++) {
-    if (_selectedExercises[keys[i]]) {
-      count++;
-      var meta = getExercise(keys[i]);
-      if (meta && !partSet[meta.bodyPart]) {
-        partSet[meta.bodyPart] = true;
-      }
-    }
+    if (!_selectedExercises[keys[i]]) continue;
+    var meta = getExercise(keys[i]);
+    if (!meta) continue;
+    totalCount++;
+    if (!groups[meta.bodyPart]) groups[meta.bodyPart] = [];
+    groups[meta.bodyPart].push({ id: meta.id, name: meta.name });
   }
 
-  if (count === 0) {
+  if (totalCount === 0) {
     el.innerHTML = '';
     return;
   }
 
-  var partNames = [];
-  var partIds = Object.keys(partSet);
-  for (var i = 0; i < partIds.length; i++) {
-    var p = getBodyPart(partIds[i]);
-    if (p) partNames.push(p.name);
+  var html = '<div class="ex-select-chosen-title">선택한 종목</div>';
+  html += '<div class="ex-select-chosen-list">';
+
+  // BODY_PARTS 순서대로 출력
+  for (var pi = 0; pi < BODY_PARTS.length; pi++) {
+    var partId = BODY_PARTS[pi].id;
+    var items = groups[partId];
+    if (!items || items.length === 0) continue;
+
+    var partInfo = getBodyPart(partId);
+    html += '<div class="ex-select-chosen-group">';
+    html += '<span class="ex-select-chosen-part">' + partInfo.name + '</span>';
+    for (var j = 0; j < items.length; j++) {
+      html += '<span class="ex-select-chosen-chip" onclick="toggleSelectExercise(\'' + items[j].id + '\',\'' + partId + '\')">' + items[j].name + ' ✕</span>';
+    }
+    html += '</div>';
   }
 
-  el.innerHTML =
-    '<div class="exercise-select-summary-text">' +
-      partNames.join(' · ') + ' — ' + count + '종목 선택' +
-    '</div>';
+  html += '</div>';
+  el.innerHTML = html;
 }
 
 function updateSelectButton() {
