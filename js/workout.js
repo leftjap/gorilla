@@ -508,16 +508,19 @@ function renderExerciseCards() {
 
   container.innerHTML = html;
 
-  // 3. 종목 네비 버튼 롱프레스(종목 완료) 바인딩
+  // 3. 종목 카드 헤더 롱프레스(종목 완료/삭제) 바인딩
+  bindExHeaderLongPress();
+
+  // 4. 종목 네비 버튼 롱프레스(종목 완료) 바인딩
   bindNavLongPress();
 
-  // 4. 부위 탭 롱프레스(설정 진입) 바인딩
+  // 5. 부위 탭 롱프레스(설정 진입) 바인딩
   bindPartTabLongPress();
 
-  // 5. 카드 좌우 스와이프 종목 전환
+  // 6. 카드 좌우 스와이프 종목 전환
   bindCardSwipe();
 
-  // 6. 활성 종목이 네비 중앙에 오도록 자동 스크롤
+  // 7. 활성 종목이 네비 중앙에 오도록 자동 스크롤
   scrollNavToActive();
 }
 
@@ -885,7 +888,7 @@ function renderExerciseCard(exIdx) {
     ? '<img src="' + exIconUrl + '" class="ex-card-icon" alt="" onerror="this.style.display=\'none\'">'
     : '';
   html +=
-    '<div class="ex-card-header-standalone" id="exHeader-' + exIdx + '" ontouchstart="startExHeaderLongPress(' + exIdx + ',event)" ontouchend="cancelExHeaderLongPress()" ontouchmove="moveExHeaderLongPress(event)">' +
+    '<div class="ex-card-header-standalone" id="exHeader-' + exIdx + '">' +
       '<div class="ex-card-header-left">' +
         '<div class="ex-card-color" style="background:#e85040"></div>' +
         '<div class="ex-card-name">' + meta.name + '</div>' +
@@ -1221,94 +1224,181 @@ function removeExerciseFromSession(exIdx) {
   renderExerciseCards();
 }
 
-// ══ 종목 카드 헤더 롱프레스 → 종목 완료 확인 ══
-var _exHeaderLongPressTimer = null;
-var _exHeaderTouchStart = null;
-
-function startExHeaderLongPress(exIdx, e) {
-  cancelExHeaderLongPress();
-
-  var touch = e.touches ? e.touches[0] : e;
-  _exHeaderTouchStart = { x: touch.clientX, y: touch.clientY };
-
-  var header = document.getElementById('exHeader-' + exIdx);
-  if (header) header.classList.add('long-pressing');
-
-  _exHeaderLongPressTimer = setTimeout(function() {
-    _exHeaderLongPressTimer = null;
-    _exHeaderTouchStart = null;
-    if (navigator.vibrate) navigator.vibrate(30);
-    if (header) header.classList.remove('long-pressing');
-
-    var exData = _currentSession.exercises[exIdx];
-    var meta = getExercise(exData.exerciseId);
-    var name = meta ? meta.name : '';
-
-    var doneCount = 0;
-    for (var k = 0; k < exData.sets.length; k++) {
-      if (exData.sets[k].done) doneCount++;
-    }
-
-    var buttons = [];
-
-    // 종목 완료 옵션
-    if (doneCount > 0) {
-      buttons.push({
-        text: '종목 완료',
-        onClick: function() {
-          showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
-            if (confirmed) {
-              completeExercise(exIdx);
-            }
-          });
-        }
-      });
-    }
-
-    // 종목 삭제 옵션 (종목이 2개 이상일 때만)
-    if (_currentSession.exercises.length > 1) {
-      var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
-      buttons.push({
-        text: deleteText,
-        cls: 'destructive',
-        onClick: function() {
-          showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
-            if (confirmed) {
-              removeExerciseFromSession(exIdx);
-            }
-          });
-        }
-      });
-    }
-
-    if (buttons.length === 0) {
-      showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
-      return;
-    }
-
-    showActionSheet(name, buttons);
-  }, 500);
-}
-
-function moveExHeaderLongPress(e) {
-  if (!_exHeaderLongPressTimer || !_exHeaderTouchStart) return;
-  var touch = e.touches ? e.touches[0] : e;
-  var dx = Math.abs(touch.clientX - _exHeaderTouchStart.x);
-  var dy = Math.abs(touch.clientY - _exHeaderTouchStart.y);
-  if (dx > 15 || dy > 15) {
-    cancelExHeaderLongPress();
-  }
-}
-
-function cancelExHeaderLongPress() {
-  if (_exHeaderLongPressTimer) {
-    clearTimeout(_exHeaderLongPressTimer);
-    _exHeaderLongPressTimer = null;
-  }
-  _exHeaderTouchStart = null;
+// ══ 종목 카드 헤더 롱프레스 → 액션시트 (종목 완료/삭제) ══
+function bindExHeaderLongPress() {
   var headers = document.querySelectorAll('.ex-card-header-standalone');
   for (var i = 0; i < headers.length; i++) {
-    headers[i].classList.remove('long-pressing');
+    (function(header) {
+      var exIdx = parseInt(header.id.replace('exHeader-', ''));
+      if (isNaN(exIdx)) return;
+
+      var timer = null;
+      var triggered = false;
+      var startX = 0;
+      var startY = 0;
+
+      header.addEventListener('touchstart', function(e) {
+        triggered = false;
+        var touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        header.classList.add('long-pressing');
+
+        timer = setTimeout(function() {
+          triggered = true;
+          timer = null;
+          header.classList.remove('long-pressing');
+          if (navigator.vibrate) navigator.vibrate(30);
+
+          var exData = _currentSession.exercises[exIdx];
+          var meta = getExercise(exData.exerciseId);
+          var name = meta ? meta.name : '';
+
+          var doneCount = 0;
+          for (var k = 0; k < exData.sets.length; k++) {
+            if (exData.sets[k].done) doneCount++;
+          }
+
+          var buttons = [];
+
+          if (doneCount > 0) {
+            buttons.push({
+              text: '종목 완료',
+              onClick: function() {
+                showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
+                  if (confirmed) {
+                    completeExercise(exIdx);
+                  }
+                });
+              }
+            });
+          }
+
+          if (_currentSession.exercises.length > 1) {
+            var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
+            buttons.push({
+              text: deleteText,
+              cls: 'destructive',
+              onClick: function() {
+                showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
+                  if (confirmed) {
+                    removeExerciseFromSession(exIdx);
+                  }
+                });
+              }
+            });
+          }
+
+          if (buttons.length === 0) {
+            showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
+            return;
+          }
+
+          showActionSheet(name, buttons);
+        }, 500);
+      }, { passive: true });
+
+      header.addEventListener('touchmove', function(e) {
+        if (!timer) return;
+        var touch = e.touches[0];
+        var dx = Math.abs(touch.clientX - startX);
+        var dy = Math.abs(touch.clientY - startY);
+        if (dx > 15 || dy > 15) {
+          clearTimeout(timer);
+          timer = null;
+          triggered = false;
+          header.classList.remove('long-pressing');
+        }
+      }, { passive: true });
+
+      header.addEventListener('touchend', function(e) {
+        if (timer) { clearTimeout(timer); timer = null; }
+        header.classList.remove('long-pressing');
+        if (triggered) {
+          e.preventDefault();
+          e.stopPropagation();
+          triggered = false;
+        }
+      }, { passive: false });
+
+      header.addEventListener('touchcancel', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        triggered = false;
+        header.classList.remove('long-pressing');
+      }, { passive: true });
+
+      // PC 테스트용 마우스 지원
+      header.addEventListener('mousedown', function(e) {
+        triggered = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        header.classList.add('long-pressing');
+
+        timer = setTimeout(function() {
+          triggered = true;
+          timer = null;
+          header.classList.remove('long-pressing');
+
+          var exData = _currentSession.exercises[exIdx];
+          var meta = getExercise(exData.exerciseId);
+          var name = meta ? meta.name : '';
+
+          var doneCount = 0;
+          for (var k = 0; k < exData.sets.length; k++) {
+            if (exData.sets[k].done) doneCount++;
+          }
+
+          var buttons = [];
+
+          if (doneCount > 0) {
+            buttons.push({
+              text: '종목 완료',
+              onClick: function() {
+                showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
+                  if (confirmed) {
+                    completeExercise(exIdx);
+                  }
+                });
+              }
+            });
+          }
+
+          if (_currentSession.exercises.length > 1) {
+            var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
+            buttons.push({
+              text: deleteText,
+              cls: 'destructive',
+              onClick: function() {
+                showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
+                  if (confirmed) {
+                    removeExerciseFromSession(exIdx);
+                  }
+                });
+              }
+            });
+          }
+
+          if (buttons.length === 0) {
+            showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
+            return;
+          }
+
+          showActionSheet(name, buttons);
+        }, 500);
+      });
+
+      header.addEventListener('mouseup', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        header.classList.remove('long-pressing');
+        triggered = false;
+      });
+
+      header.addEventListener('mouseleave', function() {
+        if (timer) { clearTimeout(timer); timer = null; }
+        header.classList.remove('long-pressing');
+        triggered = false;
+      });
+    })(headers[i]);
   }
 }
 
