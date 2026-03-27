@@ -219,7 +219,7 @@ style.css          — 전체 스타일 (모바일 우선)
 js/storage.js      — LocalStorage, 상수, 유틸, 종목 마스터(EXERCISES 40종), 커스텀 종목 CRUD, 종목 아이콘, 마이그레이션
 js/data.js         — 세션/PR/인바디 CRUD, 통계 함수, MET 기반 칼로리 추정
 js/ui.js           — 화면 전환(showScreen), 홈 대시보드, 주간/월간 캘린더, 바텀시트, History API. ⚠️ 캘린더 터치 핸들러: 짧은탭 시 DOM 교체 금지, CSS 클래스만 전환 (롱프레스 타이머 보존)
-js/workout.js      — 운동 진행 (부위 선택, 종목 카드, 세트 입력, PR 감지, 타이머, 자동저장, 완료). ⚠️ completeSet: 맨몸 weight=0 처리, 유산소는 completeCardio 별도
+js/workout.js      — 운동 진행 (종목 선택, 종목 추가/삭제, 세트 입력, PR 감지, 타이머, 자동저장, 완료). ⚠️ completeSet: 맨몸 weight=0 처리, 유산소는 completeCardio 별도
 js/stats.js        — 통계 화면 (월간 요약, 캘린더, 운동 카드, 부위별 랭킹, 월별 차트). ⚠️ selectStatsDate: renderStatsScreen() 대신 renderStatsWorkoutCard()만 호출
 js/settings.js     — 설정 화면, 종목 관리 (추가/삭제/숨김/아이콘 편집)
 js/sync.js         — GAS 동기화 (save/load + 토스트). ⚠️ syncFromServer 타임스탬프 비교 '>' 엄격 (같으면 서버가 덮어쓰지 않음)
