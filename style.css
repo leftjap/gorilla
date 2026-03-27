@@ -131,24 +131,28 @@ input {
 }
 
 .wh-center {
-  flex: 1;
   display: flex;
-  gap: 6px;
-  justify-content: space-between;
-  align-items: center;
+  flex: 1;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0;
+  overflow: hidden;
 }
-
-.wh-timer {
-  font-size: 21px;
+.wh-time {
+  font-size: 15px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
   color: var(--dark);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
-
+.wh-sep {
+  margin: 0 6px;
+  color: var(--gray);
+  font-size: 14px;
+}
 .wh-vol {
   font-size: 14px;
   font-weight: 600;
-  margin-left: 8px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }

@@ -412,51 +412,40 @@ function startWorkout() {
 var _workoutTimerInterval = null;
 
 function startWorkoutTimer() {
-  updateWorkoutTimerDisplay();
-  _workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
+  if (_workoutTimerInterval) clearInterval(_workoutTimerInterval);
+  _workoutTimerInterval = setInterval(updateWorkoutTimeDisplay, 1000);
+  updateWorkoutTimeDisplay();
 }
 
-function updateWorkoutTimerDisplay() {
-  var el = document.getElementById('workoutTimer');
-  if (!el || !_workoutStartTime) return;
-  var elapsed = Math.floor((Date.now() - _workoutStartTime) / 1000);
-  var min = Math.floor(elapsed / 60);
-  var sec = elapsed % 60;
-  el.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+function updateWorkoutTimeDisplay() {
+  var el = document.getElementById('workoutTime');
+  if (!el) return;
+  var session = JSON.parse(localStorage.getItem('wk_current_session'));
+  if (!session || !session.startTime) { el.textContent = ''; return; }
+  var diff = Math.floor((Date.now() - session.startTime) / 1000);
+  var h = Math.floor(diff / 3600);
+  var m = Math.floor((diff % 3600) / 60);
+  var s = diff % 60;
+  el.textContent = (h > 0 ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 }
 
 function updateWorkoutHeader(inProgress) {
   var headerEl = document.getElementById('workoutHeader');
   if (!headerEl) return;
 
-  var timerEl = document.getElementById('workoutTimer');
   var tagsEl = document.getElementById('workoutTags');
 
   if (inProgress) {
-    if (timerEl) timerEl.style.display = 'inline';
     if (tagsEl) {
       tagsEl.innerHTML = '<button class="wh-settings-btn" onclick="openSettingsForPart(_selectedParts[0] || \'chest\')">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
       '</button>';
     }
-
-    // 볼륨 표시 영역 세팅 (최초 1회)
-    var volEl = document.getElementById('workoutHeaderVol');
-    if (!volEl) {
-      var centerEl = document.querySelector('.wh-center');
-      if (centerEl) {
-        var span = document.createElement('span');
-        span.id = 'workoutHeaderVol';
-        span.className = 'wh-vol';
-        centerEl.appendChild(span);
-      }
-    }
     updateHeaderVolume();
   } else {
-    if (timerEl) timerEl.style.display = 'none';
     if (tagsEl) tagsEl.innerHTML = '';
     var volEl = document.getElementById('workoutHeaderVol');
-    if (volEl) volEl.remove();
+    if (volEl) volEl.textContent = '';
   }
 }
 
@@ -499,6 +488,8 @@ function updateHeaderVolume() {
   } else {
     volEl.textContent = '';
   }
+  var sepEl = document.querySelector('.wh-sep');
+  if (sepEl) sepEl.style.display = currentVol > 0 ? '' : 'none';
 }
 
 // ══ 부위 탭 클릭 → 해당 부위 종목만 네비에 표시 ══
