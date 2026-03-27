@@ -28,6 +28,7 @@ html {
   --icon-inactive: #AAAAAA; /* 비활성 아이콘 */
   --accent: #e85040;      /* 대표 포인트 (Bear 레드) */
   --accent-bg: #fdf0ee;   /* 포인트 연한 배경 */
+  --blue-bg: #EBF3FB;     /* 블루 연한 배경 (CONTINUE 등) */
 }
 
 /* ── 리셋 ── */
@@ -191,8 +192,8 @@ input {
 .wh-btn {
   padding: 6px 12px;
   border-radius: 8px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--accent-bg);
+  color: var(--dark);
   font-weight: 600;
   font-size: 12px;
 }
@@ -254,7 +255,7 @@ input {
 
 /* ── 스트릭 ── */
 .streak-section {
-  background: var(--dark);
+  background: var(--gray);
   border-radius: 8px;
   padding: 20px;
   text-align: center;
@@ -521,8 +522,8 @@ input {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--accent-bg);
+  color: var(--dark);
   font-weight: 600;
   font-size: 16px;
   transition: all 0.2s ease;
@@ -535,7 +536,7 @@ input {
 }
 
 .start-workout-btn:active:not(:disabled) {
-  background: #1a1a1a;
+  background: #f9d9d4;
 }
 
 /* ── 부위탭+종목네비 영역 ── */
@@ -567,9 +568,11 @@ input {
 }
 
 .exercise-nav-part-tab.active {
-  background: var(--dark);
-  color: #fff;
-  font-weight: 600;
+  background: transparent;
+  color: var(--dark);
+  font-weight: 700;
+  border-bottom: 2px solid var(--dark);
+  border-radius: 0;
 }
 
 .exercise-nav-part-tab.long-pressing {
@@ -890,9 +893,9 @@ input {
 }
 
 .set-num.set-num-done {
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
-  border-color: var(--dark);
+  border-color: var(--gray);
 }
 
 .set-num:active {
@@ -1022,9 +1025,9 @@ input {
 }
 
 .set-check-btn.done {
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
-  border-color: var(--dark);
+  border-color: var(--gray);
 }
 
 /* ── 세트 진행 바 ── */
@@ -1050,7 +1053,7 @@ input {
 .set-progress-bar {
   height: 100%;
   border-radius: 3px;
-  background: var(--dark);
+  background: var(--gray);
   transition: width 0.3s ease;
 }
 
@@ -1068,7 +1071,7 @@ input {
 
 .set-progress-pct {
   font-weight: 700;
-  color: var(--dark);
+  color: var(--gray);
 }
 
 .set-progress-pct.burst {
@@ -1120,7 +1123,7 @@ input {
   width: 100%;
   padding: 16px;
   border-radius: 12px;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-size: 16px;
   font-weight: 600;
@@ -1246,7 +1249,7 @@ input {
 }
 
 .rest-timer.active {
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
 }
 
@@ -1279,7 +1282,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 32px) 16px 12px 16px;
   background: var(--bg-gray);
 }
 
@@ -1302,7 +1305,7 @@ input {
 .stats-header-month {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 2px;
 }
 
 .stats-month-nav {
@@ -1322,7 +1325,7 @@ input {
 }
 
 .stats-month-nav-tri {
-  width: 32px;
+  width: 28px;
   height: 32px;
   border-radius: 8px;
   display: flex;
@@ -1380,6 +1383,32 @@ input {
 /* 월간 캘린더 */
 .stats-cal {
   padding: 0 12px 16px 12px;
+}
+
+/* ── 달력 스와이프 (Phase 3-D) ── */
+.stats-cal-swipe-container {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.stats-cal-swipe-track {
+  display: flex;
+  width: 100%;
+  will-change: transform;
+}
+
+.stats-cal-swipe-track.animating {
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.stats-cal-swipe-track.swiping {
+  transition: none;
+}
+
+.stats-cal-swipe-panel {
+  flex: 0 0 100%;
+  min-width: 100%;
 }
 
 .stats-cal-dow-row {
@@ -1542,7 +1571,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--dark);
+  background: var(--accent);
   color: var(--white);
   font-size: 14px;
   font-weight: 700;
@@ -1706,7 +1735,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 32px) 16px 12px 16px;
   background: var(--bg-gray);
   border-bottom: 1px solid var(--light-gray);
 }
@@ -1738,8 +1767,8 @@ input {
   gap: 6px;
   padding: 12px 16px;
   overflow-x: auto;
-  background: var(--white);
-  border-bottom: 1px solid var(--light-gray);
+  background: transparent;
+  border-bottom: none;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1762,10 +1791,10 @@ input {
 }
 
 .settings-part-tab.active {
-  background: var(--dark);
-  color: var(--white);
+  background: transparent;
+  color: var(--dark);
   border-color: var(--dark);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .settings-exercise-list {
@@ -2001,9 +2030,9 @@ input {
 }
 
 .settings-eq-tab.active {
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
-  border-color: var(--dark);
+  border-color: var(--gray);
 }
 
 .form-row {
@@ -2191,13 +2220,13 @@ input {
   width: 100%;
   padding: 12px;
   border-radius: 12px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--accent-bg);
+  color: var(--dark);
   font-weight: 600;
 }
 
 .summary-home-btn:active {
-  background: #1a1a1a;
+  background: #f9d9d4;
 }
 
 .finish-btn {
@@ -2205,15 +2234,15 @@ input {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--accent-bg);
+  color: var(--dark);
   font-weight: 600;
   font-size: 16px;
   margin-bottom: 12px;
 }
 
 .finish-btn:active {
-  background: #1a1a1a;
+  background: #f9d9d4;
 }
 
 /* ── 통계 화면 ── */
@@ -2336,7 +2365,7 @@ input {
 .inbody-add-btn {
   padding: 6px 12px;
   border-radius: 8px;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-weight: 600;
   font-size: 12px;
@@ -2471,13 +2500,13 @@ input {
   flex: 1;
   padding: 10px;
   border-radius: 12px;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-weight: 600;
 }
 
 .btn-save:active {
-  background: #1a1a1a;
+  background: #555555;
 }
 
 .chart-placeholder {
@@ -3161,6 +3190,17 @@ input {
   flex-wrap: wrap;
 }
 
+.bs-delete-btn {
+  background: none;
+  border: none;
+  color: #e85040;
+  font-size: 13px;
+  padding: 4px 0;
+  margin-top: 4px;
+  cursor: pointer;
+  text-align: left;
+}
+
 /* ── 운동 시작 버튼 ── */
 .start-workout {
   position: fixed;
@@ -3170,8 +3210,8 @@ input {
   right: 20px;
   height: 72px;
   padding: 0 16px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--accent-bg);
+  color: var(--dark);
   border: none;
   border-radius: 12px;
   font-size: 16px;
@@ -3278,7 +3318,7 @@ input {
   height: 48px;
   border: none;
   border-radius: 10px;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-size: 15px;
   font-weight: 600;
@@ -3287,7 +3327,7 @@ input {
 }
 
 .confirm-modal-ok:active {
-  background: #1a1a1a;
+  background: #555555;
 }
 
 /* ── 운동 순서 타임라인 ── */
@@ -3327,7 +3367,7 @@ input {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-size: 14px;
   font-weight: 700;
@@ -3918,7 +3958,7 @@ input {
   padding: 14px;
   border: none;
   border-radius: 10px;
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
   font-size: 15px;
   font-weight: 600;
@@ -3930,7 +3970,7 @@ input {
 }
 
 .complete-ex-btn:active {
-  background: #1a1a1a;
+  background: #555555;
   transform: scale(0.98);
 }
 
@@ -4106,8 +4146,9 @@ input {
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  background: var(--dark);
-  color: var(--white);
+  background: var(--white);
+  color: var(--dark);
+  border: 1px solid var(--border-gray);
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
@@ -4118,6 +4159,41 @@ input {
 
 .ex-select-chosen-chip:active {
   opacity: 0.6;
+}
+
+/* ── 종목 선택: 운동 순서 칩 ── */
+.ex-order-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 0 0;
+}
+
+.ex-order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-gray);
+  background: var(--white);
+  color: var(--dark);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ex-order-chip:active {
+  background: var(--light-gray);
+}
+
+.ex-order-chip-num {
+  font-weight: 700;
+  color: var(--gray);
+  font-size: 12px;
 }
 
 /* ── 종목 선택 화면 ── */
@@ -4149,9 +4225,11 @@ input {
 }
 
 .exercise-select-tab.active {
-  background: var(--dark);
-  color: var(--white);
-  font-weight: 600;
+  background: transparent;
+  color: var(--dark);
+  font-weight: 700;
+  border-bottom: 2px solid var(--dark);
+  border-radius: 0;
 }
 
 .exercise-select-list {
@@ -4176,9 +4254,9 @@ input {
 }
 
 .exercise-select-item.checked .exercise-select-check {
-  background: var(--dark);
+  background: var(--gray);
   color: var(--white);
-  border-color: var(--dark);
+  border-color: var(--gray);
 }
 
 .exercise-select-check {
@@ -4260,10 +4338,11 @@ input {
 }
 
 .ex-select-chip.selected {
-  background: var(--dark);
-  color: var(--white);
-  border-color: var(--dark);
-  font-weight: 600;
+  background: var(--white);
+  color: var(--dark);
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.13);
+  transform: translate(-2px, -3px);
 }
 
 .ex-select-chip.in-session {

@@ -48,6 +48,8 @@ function showScreen(screenId, historyAction) {
     workoutScreen.style.display = 'block';
     if (bottomBtn) bottomBtn.style.display = 'block';
     renderWorkoutScreen();
+    // ── 헤더 표시 보장 (Phase 3-A-fix-2) ──
+    if (typeof ensureWorkoutHeader === 'function') ensureWorkoutHeader();
   } else if (screenId === 'stats') {
     if (statsScreen) statsScreen.style.display = 'block';
     if (bottomBtn) bottomBtn.style.display = 'none';
@@ -621,9 +623,28 @@ function openBottomSheet(dateStr) {
             '<span>·</span>' +
             '<span>' + formatNum(s.totalCalories || 0) + 'kcal</span>' +
           '</div>' +
+          '<button class="bs-delete-btn" data-session-id="' + s.id + '">삭제</button>' +
         '</div>';
     }
     content.innerHTML = html;
+
+    // 삭제 버튼 바인딩
+    var delBtns = content.querySelectorAll('.bs-delete-btn');
+    for (var d = 0; d < delBtns.length; d++) {
+      (function(btn) {
+        btn.onclick = function() {
+          var sid = btn.getAttribute('data-session-id');
+          showConfirm('이 운동 기록을 삭제하시겠습니까?', function(confirmed) {
+            if (confirmed) {
+              deleteSession(sid);
+              if (typeof syncToServer === 'function') syncToServer(null, true);
+              closeBottomSheet();
+              renderStatsScreen();
+            }
+          });
+        };
+      })(delBtns[d]);
+    }
   }
 
   overlay.style.display = 'block';
@@ -689,6 +710,151 @@ function updateMonthTitle() {
   if (el) el.textContent = m + '월';
 }
 
+// ══ 통계 화면 월 전환 (Phase 3-D) ══
+function navigateStatsMonth(delta) {
+  var [y, m] = _statsYM.split('-').map(Number);
+  m += delta;
+
+  if (m < 1) {
+    m = 12;
+    y -= 1;
+  } else if (m > 12) {
+    m = 1;
+    y += 1;
+  }
+
+  // 미래 달 방지
+  var currentYM = getYM();
+  var newYM = y + '-' + String(m).padStart(2, '0');
+  if (newYM > currentYM) return;
+
+  _statsYM = newYM;
+  _statsSelectedDate = today();
+  renderStatsScreen();
+}
+
+/* ── 통계 달력 스와이프 (Phase 3-D) ── */
+function bindStatsCalSwipe() {
+  const container = document.querySelector('.stats-cal-swipe-container');
+  if (!container) return;
+
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let isDragging = false;
+  let isHorizontal = null;
+
+  const THRESHOLD = 50;
+  const EDGE_ZONE = 30;
+
+  const track = container.querySelector('.stats-cal-swipe-track');
+  if (!track) return;
+
+  container.addEventListener('touchstart', function(e) {
+    const touchX = e.touches[0].clientX;
+    if (touchX < EDGE_ZONE) return;
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    currentX = 0;
+    isDragging = true;
+    isHorizontal = null;
+
+    track.classList.remove('animating');
+    track.classList.add('swiping');
+  }, { passive: true });
+
+  container.addEventListener('touchmove', function(e) {
+    if (!isDragging) return;
+
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+
+    if (isHorizontal === null) {
+      if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+      isHorizontal = Math.abs(dx) > Math.abs(dy);
+      if (!isHorizontal) {
+        isDragging = false;
+        track.classList.remove('swiping');
+        track.style.transform = '';
+        return;
+      }
+    }
+
+    if (!isHorizontal) return;
+
+    currentX = dx;
+    const resistance = 0.4;
+    const limited = currentX * resistance;
+
+    track.style.transform = 'translateX(' + limited + 'px)';
+  }, { passive: true });
+
+  container.addEventListener('touchend', function(e) {
+    if (!isDragging || !isHorizontal) {
+      isDragging = false;
+      track.classList.remove('swiping');
+      track.style.transform = '';
+      return;
+    }
+
+    isDragging = false;
+    track.classList.remove('swiping');
+
+    if (Math.abs(currentX) > THRESHOLD) {
+      const direction = currentX > 0 ? 'prev' : 'next';
+      slideOutStatsCalAndNavigate(direction, track, container);
+    } else {
+      track.classList.add('animating');
+      track.style.transform = 'translateX(0)';
+      track.addEventListener('transitionend', function handler() {
+        track.classList.remove('animating');
+        track.removeEventListener('transitionend', handler);
+      });
+    }
+  }, { passive: true });
+}
+
+function slideOutStatsCalAndNavigate(direction, track, container) {
+  const containerWidth = container.offsetWidth;
+  const slideOut = direction === 'prev' ? containerWidth : -containerWidth;
+
+  track.classList.add('animating');
+  track.style.transform = 'translateX(' + slideOut + 'px)';
+
+  track.addEventListener('transitionend', function handler() {
+    track.removeEventListener('transitionend', handler);
+    track.classList.remove('animating');
+
+    if (direction === 'prev') {
+      navigateStatsMonth(-1);
+    } else {
+      navigateStatsMonth(1);
+    }
+
+    // renderStatsScreen() 호출 후 새 track을 가져옴
+    setTimeout(function() {
+      const newTrack = container.querySelector('.stats-cal-swipe-track');
+      if (newTrack) {
+        const slideIn = direction === 'prev' ? -containerWidth : containerWidth;
+        newTrack.style.transform = 'translateX(' + slideIn + 'px)';
+        newTrack.classList.remove('animating');
+
+        void newTrack.offsetWidth;
+
+        newTrack.classList.add('animating');
+        newTrack.style.transform = 'translateX(0)';
+
+        newTrack.addEventListener('transitionend', function handler2() {
+          newTrack.removeEventListener('transitionend', handler2);
+          newTrack.classList.remove('animating');
+          newTrack.style.transform = '';
+        });
+      }
+    }, 0);
+  });
+}
+
 // ══ 하단 고정 버튼 상태 관리 ══
 var _bottomBtnState = 'start'; // 'start' | 'continue' | 'partSelect' | 'partSelectReady' | 'workout' | 'summary'
 var _longPressTimer = null;
@@ -712,20 +878,22 @@ function updateBottomButton(state) {
   btn = newBtn;
 
   btn.style.display = 'block';
+  btn.style.border = 'none';  // 이전 스타일 초기화
 
   switch (state) {
     case 'start':
       btn.textContent = 'START WORKOUT';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--accent-bg)';
+      btn.style.color = 'var(--dark)';
       btn.onclick = onBottomBtnClick;
       break;
     case 'continue':
       btn.textContent = 'CONTINUE WORKOUT';
       btn.disabled = false;
-      btn.style.background = '#e85040';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--blue-bg)';
+      btn.style.color = 'var(--dark)';
+      btn.style.border = 'none';
       btn.onclick = function(e) { e.preventDefault(); }; // ghost click 흡수
       setupLongPress(btn);
       break;
@@ -739,28 +907,28 @@ function updateBottomButton(state) {
     case 'partSelectReady':
       btn.textContent = 'START';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--accent-bg)';
+      btn.style.color = 'var(--dark)';
       btn.onclick = onBottomBtnClick;
       break;
     case 'workout':
       btn.textContent = 'FINISH WORKOUT';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--accent-bg)';
+      btn.style.color = 'var(--dark)';
       btn.onclick = onBottomBtnClick;
       break;
     case 'summary':
       btn.textContent = 'DONE';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--accent-bg)';
+      btn.style.color = 'var(--dark)';
       btn.onclick = onBottomBtnClick;
       break;
     case 'editSave':
       btn.textContent = 'SAVE CHANGES';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
+      btn.style.background = 'var(--gray)';
       btn.style.color = 'var(--white)';
       btn.onclick = onBottomBtnClick;
       break;
@@ -774,8 +942,8 @@ function updateBottomButton(state) {
     case 'addExerciseReady':
       btn.textContent = '종목 추가';
       btn.disabled = false;
-      btn.style.background = 'var(--dark)';
-      btn.style.color = 'var(--white)';
+      btn.style.background = 'var(--accent-bg)';
+      btn.style.color = 'var(--dark)';
       btn.onclick = function() { confirmAddExercises(); };
       break;
   }

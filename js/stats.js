@@ -130,6 +130,9 @@ function renderStatsScreen() {
     })(calCells[ci]);
   }
 
+  // ── 달력 스와이프 바인딩 (Phase 3-D) ──
+  bindStatsCalSwipe();
+
   // 선택된 날짜 카드 렌더
   renderStatsWorkoutCard();
 }
@@ -225,6 +228,11 @@ function renderStatsMonthCal() {
   }
   html += '</div>';
 
+  // ── 스와이프 컨테이너 추가 (Phase 3-D) ──
+  html += '<div class="stats-cal-swipe-container">';
+  html += '<div class="stats-cal-swipe-track">';
+  html += '<div class="stats-cal-swipe-panel">';
+
   html += '<div class="stats-cal-grid">';
 
   for (var i = 0; i < firstDayMon; i++) {
@@ -261,6 +269,9 @@ function renderStatsMonthCal() {
   }
 
   html += '</div>';
+  html += '</div>';  // swipe-panel
+  html += '</div>';  // swipe-track
+  html += '</div>';  // swipe-container
   html += '</div>';
 
   return html;

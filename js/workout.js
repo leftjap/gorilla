@@ -11,7 +11,27 @@ var _headerFilterPart = null;  // 헤더 부위 탭 필터 (null이면 전체)
 var _autoSaveInterval = null;  // 30초 주기 자동저장 타이머
 var _cardioTimers = {};  // 유산소 스톱워치 상태 { exIdx: { startedAt, elapsed, running, intervalId } }
 var _selectedExercises = {};  // 종목 선택 화면 체크 상태 { exerciseId: true/false }
+var _selectedOrder = [];       // ★ 추가: 선택 순서 배열 [exerciseId, exerciseId, ...]
 var _addExerciseMode = false;  // 운동 중 종목 추가 모드 플래그
+
+/* ── 헤더 표시 보장 (Phase 3-A-fix-2) ── */
+function ensureWorkoutHeader() {
+  const hdr = document.getElementById('workoutHeader');
+  if (!hdr) return;
+
+  if (_currentSession) {
+    // 헤더 무조건 표시
+    hdr.style.display = 'flex';
+
+    // 타이머 미작동 시 시작
+    if (!_workoutTimerInterval) startWorkoutTimer();
+
+    // 볼륨 무조건 갱신 (0이어도 표시)
+    updateHeaderVolume();
+  } else {
+    hdr.style.display = 'none';
+  }
+}
 
 // ══ 종목 완료 여부 판정 ══
 function isExerciseComplete(exIdx) {
@@ -44,6 +64,9 @@ function renderWorkoutScreen() {
     updateBottomButton('partSelect');
     renderPartSelector();
   }
+
+  // ── 헤더 표시 보장 (Phase 3-A-fix-2) ──
+  ensureWorkoutHeader();
 }
 
 // ══ 부위 선택 ══
@@ -51,6 +74,7 @@ function renderPartSelector() {
   var container = document.getElementById('workoutContent');
   _selectedParts = [];
   _selectedExercises = {};
+  _selectedOrder = [];
 
   var workoutHeader = document.getElementById('workoutHeader');
   if (workoutHeader) workoutHeader.style.display = 'none';
@@ -160,7 +184,18 @@ function renderSelectList(partId) {
 }
 
 function toggleSelectExercise(exerciseId, partId) {
-  _selectedExercises[exerciseId] = !_selectedExercises[exerciseId];
+  if (_selectedExercises[exerciseId]) {
+    // 선택 해제 → 배열에서도 제거
+    _selectedExercises[exerciseId] = false;
+    var idx = _selectedOrder.indexOf(exerciseId);
+    if (idx >= 0) _selectedOrder.splice(idx, 1);
+  } else {
+    // 선택 → 배열 맨 뒤에 추가
+    _selectedExercises[exerciseId] = true;
+    if (_selectedOrder.indexOf(exerciseId) < 0) {
+      _selectedOrder.push(exerciseId);
+    }
+  }
 
   // 현재 활성 탭 확인
   var activeTab = document.querySelector('.exercise-select-tab.active');
@@ -180,7 +215,14 @@ function renderSelectedChosen() {
 
   var hidden = getHiddenExercises();
 
-  // hidden 종목은 _selectedExercises에서 자동 제거
+  // hidden 종목은 _selectedOrder에서도 제거
+  for (var i = _selectedOrder.length - 1; i >= 0; i--) {
+    if (hidden.indexOf(_selectedOrder[i]) >= 0) {
+      _selectedExercises[_selectedOrder[i]] = false;
+      _selectedOrder.splice(i, 1);
+    }
+  }
+  // 기존 _selectedExercises 정리
   var keys = Object.keys(_selectedExercises);
   for (var i = 0; i < keys.length; i++) {
     if (hidden.indexOf(keys[i]) >= 0) {
@@ -188,39 +230,23 @@ function renderSelectedChosen() {
     }
   }
 
-  // 선택된 종목을 부위별로 그룹핑
-  var groups = {};
-  var totalCount = 0;
-  keys = Object.keys(_selectedExercises);
-  for (var i = 0; i < keys.length; i++) {
-    if (!_selectedExercises[keys[i]]) continue;
-    var meta = getExercise(keys[i]);
-    if (!meta) continue;
-    totalCount++;
-    if (!groups[meta.bodyPart]) groups[meta.bodyPart] = [];
-    groups[meta.bodyPart].push({ id: meta.id, name: meta.name });
-  }
-
-  if (totalCount === 0) {
+  if (_selectedOrder.length === 0) {
     el.innerHTML = '';
     return;
   }
 
-  var html = '<div class="ex-select-chosen-title">선택한 종목</div>';
-  html += '<div class="ex-select-chosen-list">';
+  var html = '<div class="ex-select-chosen-title">운동 순서</div>';
+  html += '<div class="ex-order-chips">';
 
-  for (var pi = 0; pi < BODY_PARTS.length; pi++) {
-    var partId = BODY_PARTS[pi].id;
-    var items = groups[partId];
-    if (!items || items.length === 0) continue;
+  for (var i = 0; i < _selectedOrder.length; i++) {
+    var exId = _selectedOrder[i];
+    var meta = getExercise(exId);
+    if (!meta) continue;
 
-    var partInfo = getBodyPart(partId);
-    html += '<div class="ex-select-chosen-group">';
-    html += '<span class="ex-select-chosen-part">' + partInfo.name + '</span>';
-    for (var j = 0; j < items.length; j++) {
-      html += '<span class="ex-select-chosen-chip" onclick="toggleSelectExercise(\'' + items[j].id + '\',\'' + partId + '\')">' + items[j].name + ' ✕</span>';
-    }
-    html += '</div>';
+    html +=
+      '<button class="ex-order-chip" onclick="toggleSelectExercise(\'' + exId + '\',\'' + meta.bodyPart + '\')">' +
+        '<span class="ex-order-chip-num">' + (i + 1) + '</span> ' + meta.name +
+      '</button>';
   }
 
   html += '</div>';
@@ -288,6 +314,9 @@ function showHiddenExerciseSheet() {
             toggleHideExercise(ex.id);
           }
           _selectedExercises[ex.id] = true;
+          if (_selectedOrder.indexOf(ex.id) < 0) {
+            _selectedOrder.push(ex.id);
+          }
           renderSelectList(partId);
         }
       });
@@ -317,11 +346,14 @@ function startWorkout() {
     return;
   }
 
-  // 선택된 종목 수집
-  var selectedIds = [];
-  var keys = Object.keys(_selectedExercises);
-  for (var i = 0; i < keys.length; i++) {
-    if (_selectedExercises[keys[i]]) selectedIds.push(keys[i]);
+  // ★ _selectedOrder 순서를 사용 (사용자가 탭한 순서)
+  var selectedIds = _selectedOrder.slice();
+  if (selectedIds.length === 0) {
+    // 폴백: 기존 방식
+    var keys = Object.keys(_selectedExercises);
+    for (var i = 0; i < keys.length; i++) {
+      if (_selectedExercises[keys[i]]) selectedIds.push(keys[i]);
+    }
   }
   if (selectedIds.length === 0) return;
 
@@ -354,23 +386,12 @@ function startWorkout() {
     memo: ''
   };
 
-  // 부위 순서대로 종목 정렬 (BODY_PARTS 순서 → 부위 내 sortOrder 순서)
-  var partOrder = {};
-  for (var i = 0; i < BODY_PARTS.length; i++) {
-    partOrder[BODY_PARTS[i].id] = i;
-  }
-
+  // ★ 정렬 제거: _selectedOrder 순서 = 운동 순서
   var sortedExercises = [];
   for (var i = 0; i < selectedIds.length; i++) {
     var meta = getExercise(selectedIds[i]);
     if (meta) sortedExercises.push(meta);
   }
-  sortedExercises.sort(function(a, b) {
-    var pa = partOrder[a.bodyPart] !== undefined ? partOrder[a.bodyPart] : 99;
-    var pb = partOrder[b.bodyPart] !== undefined ? partOrder[b.bodyPart] : 99;
-    if (pa !== pb) return pa - pb;
-    return (a.sortOrder || 0) - (b.sortOrder || 0);
-  });
 
   // 종목 추가
   for (var i = 0; i < sortedExercises.length; i++) {
@@ -400,12 +421,23 @@ function startWorkout() {
 
   updateWorkoutHeader(true);
   updateBottomButton('workout');
+
+  // workout-select-mode 클래스 제거 + 패딩 복원 (Phase 3-A-fix-3)
+  var container = document.getElementById('workoutContent');
+  if (container) {
+    container.className = 'workout-content';
+    container.style.padding = '';
+  }
+
   _currentExerciseIndex = 0;
   _headerFilterPart = tagList.length > 0 ? tagList[0] : null;
   renderExerciseCards();
   startWorkoutTimer();
   startPeriodicSave();
   autoSaveSession();
+
+  // ── 새 세션 시작 후 헤더 강제 표시 (Phase 3-A-fix-2) ──
+  ensureWorkoutHeader();
 }
 
 // ══ 운동 경과 타이머 ══
@@ -427,6 +459,12 @@ function updateWorkoutTimeDisplay() {
   var m = Math.floor((diff % 3600) / 60);
   var s = diff % 60;
   el.textContent = (h > 0 ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+  // ── 헤더 표시 방어 (Phase 3-A-fix-2) ──
+  const hdr = document.getElementById('workoutHeader');
+  if (hdr && _currentSession && hdr.style.display !== 'flex') {
+    hdr.style.display = 'flex';
+  }
 }
 
 function updateWorkoutHeader(inProgress) {
@@ -499,18 +537,13 @@ function updateHeaderVolume() {
     }
   }
 
-  // 표시
-  if (curVol > 0) {
-    if (sepEl) sepEl.style.display = '';
-    if (lastVol > 0) {
-      volEl.innerHTML = '<span class="vol-current">' + curVol.toLocaleString() + '</span>'
-        + ' <span class="vol-target">/ ' + lastVol.toLocaleString() + 'kg</span>';
-    } else {
-      volEl.innerHTML = '<span class="vol-current">' + curVol.toLocaleString() + 'kg</span>';
-    }
+  // 표시: 항상 볼륨 노출 (curVol이 0이어도)
+  if (sepEl) sepEl.style.display = '';
+  if (lastVol > 0) {
+    volEl.innerHTML = '<span class="vol-current">' + curVol.toLocaleString() + '</span>'
+      + ' <span class="vol-target">/ ' + lastVol.toLocaleString() + 'kg</span>';
   } else {
-    volEl.innerHTML = '';
-    if (sepEl) sepEl.style.display = 'none';
+    volEl.innerHTML = '<span class="vol-current">' + curVol.toLocaleString() + 'kg</span>';
   }
 }
 
@@ -717,6 +750,7 @@ function showAddExerciseSheet() {
   if (!_currentSession) return;
   _addExerciseMode = true;
   _selectedExercises = {};
+  _selectedOrder = [];
 
   // 오버레이 표시 (운동 화면은 그대로 유지)
   var overlay = document.getElementById('addExerciseOverlay');
@@ -831,11 +865,9 @@ function cancelAddExercise() {
 
 function confirmAddExercises() {
   if (!_currentSession) return;
-  var keys = Object.keys(_selectedExercises);
-  for (var i = 0; i < keys.length; i++) {
-    if (_selectedExercises[keys[i]]) {
-      addExerciseToSession(keys[i]);
-    }
+  // ★ _selectedOrder 순서대로 추가
+  for (var i = 0; i < _selectedOrder.length; i++) {
+    addExerciseToSession(_selectedOrder[i]);
   }
   _addExerciseMode = false;
   _selectedExercises = {};
@@ -1591,111 +1623,295 @@ function bindCardSwipe() {
   }, { passive: true });
 }
 
-// ══ 종목 네비 드래그 순서 변경 ══
+/* ── 종목 네비 드래그 순서 변경 (Phase 3-B-reorder) ── */
 function bindNavLongPress() {
-  var scrollEl = document.getElementById('exNavScroll');
+  const scrollEl = document.getElementById('exNavScroll');
   if (!scrollEl) return;
 
-  var btns = scrollEl.querySelectorAll('.ex-nav-btn:not(.ex-nav-add)');
-  for (var i = 0; i < btns.length; i++) {
-    (function(btn) {
-      var exIdx = parseInt(btn.getAttribute('data-idx'));
-      if (isNaN(exIdx)) return;
+  const LONG_PRESS_MS = 500;
+  let pressTimer = null;
+  let isDragging = false;
+  let dragIdx = -1;
+  let ghostEl = null;
+  let startX = 0;
+  let startY = 0;
+  let dropIdx = -1;
+  let autoScrollTimer = null;
 
-      var timer = null;
-      var triggered = false;
-      var startX = 0;
-      var startY = 0;
-
-      btn.addEventListener('touchstart', function(e) {
-        triggered = false;
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-        btn.classList.add('long-pressing');
-
-        timer = setTimeout(function() {
-          triggered = true;
-          btn.classList.remove('long-pressing');
-          if (navigator.vibrate) navigator.vibrate(30);
-
-          var exData = _currentSession.exercises[exIdx];
-          if (!exData) return;
-          var meta = getExercise(exData.exerciseId);
-          var name = meta ? meta.name : '';
-
-          var doneCount = 0;
-          for (var k = 0; k < exData.sets.length; k++) {
-            if (exData.sets[k].done) doneCount++;
-          }
-
-          var buttons = [];
-
-          if (doneCount > 0) {
-            buttons.push({
-              text: '종목 완료',
-              onClick: function() {
-                showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    completeExercise(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (_currentSession.exercises.length > 1) {
-            var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
-            buttons.push({
-              text: deleteText,
-              cls: 'destructive',
-              onClick: function() {
-                showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    removeExerciseFromSession(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (buttons.length === 0) {
-            showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
-            return;
-          }
-
-          showActionSheet(name, buttons);
-        }, 500);
-      }, { passive: true });
-
-      btn.addEventListener('touchmove', function(e) {
-        if (!timer) return;
-        var dx = Math.abs(e.touches[0].clientX - startX);
-        var dy = Math.abs(e.touches[0].clientY - startY);
-        if (dx > 15 || dy > 15) {
-          clearTimeout(timer);
-          timer = null;
-          triggered = false;
-          btn.classList.remove('long-pressing');
-        }
-      }, { passive: true });
-
-      btn.addEventListener('touchend', function(e) {
-        if (timer) { clearTimeout(timer); timer = null; }
-        btn.classList.remove('long-pressing');
-        if (triggered) {
-          e.preventDefault();
-          e.stopPropagation();
-          triggered = false;
-        }
-      }, { passive: false });
-
-      btn.addEventListener('touchcancel', function() {
-        if (timer) { clearTimeout(timer); timer = null; }
-        triggered = false;
-        btn.classList.remove('long-pressing');
-      }, { passive: true });
-    })(btns[i]);
+  // 종목 버튼들만 선택 (+ 버튼 제외)
+  function getNavBtns() {
+    return scrollEl.querySelectorAll('.ex-nav-btn:not(.ex-nav-add)');
   }
+
+  function getExIdx(btn) {
+    return parseInt(btn.getAttribute('data-idx'), 10);
+  }
+
+  // ── long-press 감지 ──
+  scrollEl.addEventListener('touchstart', function(e) {
+    const btn = e.target.closest('.ex-nav-btn:not(.ex-nav-add)');
+    if (!btn) return;
+
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+
+    pressTimer = setTimeout(function() {
+      // long-press 확정
+      isDragging = true;
+      dragIdx = getExIdx(btn);
+      dropIdx = dragIdx;
+
+      // 진동 피드백
+      if (navigator.vibrate) navigator.vibrate(20);
+
+      // 원본 반투명
+      btn.classList.add('nav-dragging');
+
+      // 고스트 생성
+      ghostEl = btn.cloneNode(true);
+      ghostEl.classList.add('nav-ghost');
+      ghostEl.style.position = 'fixed';
+      ghostEl.style.zIndex = '600';
+      ghostEl.style.pointerEvents = 'none';
+      ghostEl.style.opacity = '0.85';
+      ghostEl.style.transform = 'scale(1.1)';
+      ghostEl.style.fontWeight = '700';
+      ghostEl.style.color = 'var(--accent)';
+      ghostEl.style.background = 'var(--white)';
+      ghostEl.style.padding = '6px 12px';
+      ghostEl.style.borderRadius = '8px';
+      ghostEl.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)';
+      ghostEl.style.whiteSpace = 'nowrap';
+
+      const rect = btn.getBoundingClientRect();
+      ghostEl.style.left = rect.left + 'px';
+      ghostEl.style.top = (rect.top - 4) + 'px';
+
+      document.body.appendChild(ghostEl);
+
+      // 스크롤 잠금
+      scrollEl.style.overflow = 'hidden';
+
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+
+  // ── 이동 중 ──
+  scrollEl.addEventListener('touchmove', function(e) {
+    // long-press 전 이동 → 취소 (일반 스크롤)
+    if (!isDragging && pressTimer) {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 10 || dy > 10) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+      return;
+    }
+
+    if (!isDragging) return;
+
+    e.preventDefault();
+
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+
+    // 고스트 위치 갱신
+    if (ghostEl) {
+      ghostEl.style.left = (touchX - 30) + 'px';
+      ghostEl.style.top = (touchY - 20) + 'px';
+    }
+
+    // drop 위치 판정
+    clearDropIndicators();
+    const btns = getNavBtns();
+    let newDropIdx = dragIdx;
+
+    btns.forEach(function(b) {
+      const bIdx = getExIdx(b);
+      if (bIdx === dragIdx) return;
+
+      const r = b.getBoundingClientRect();
+      const midX = r.left + r.width / 2;
+
+      if (touchX < midX && touchX > r.left - 20) {
+        b.classList.add('nav-drop-before');
+        newDropIdx = bIdx;
+      } else if (touchX >= midX && touchX < r.right + 20) {
+        b.classList.add('nav-drop-after');
+        newDropIdx = bIdx + 1;
+      }
+    });
+
+    dropIdx = newDropIdx;
+
+    // 양 끝 자동 스크롤
+    const scrollRect = scrollEl.getBoundingClientRect();
+    const EDGE = 40;
+
+    clearInterval(autoScrollTimer);
+    if (touchX < scrollRect.left + EDGE) {
+      autoScrollTimer = setInterval(function() {
+        scrollEl.scrollLeft -= 8;
+      }, 16);
+    } else if (touchX > scrollRect.right - EDGE) {
+      autoScrollTimer = setInterval(function() {
+        scrollEl.scrollLeft += 8;
+      }, 16);
+    }
+
+  }, { passive: false });
+
+  // ── 드롭 ──
+  scrollEl.addEventListener('touchend', function(e) {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+    clearInterval(autoScrollTimer);
+
+    if (!isDragging) return;
+
+    isDragging = false;
+
+    // 정리
+    clearDropIndicators();
+    const btns = getNavBtns();
+    btns.forEach(function(b) { b.classList.remove('nav-dragging'); });
+
+    if (ghostEl) {
+      ghostEl.remove();
+      ghostEl = null;
+    }
+
+    scrollEl.style.overflow = '';
+
+    // 순서 변경 실행
+    if (dropIdx !== dragIdx && dropIdx !== dragIdx + 1) {
+      moveExerciseByDrag(dragIdx, dropIdx);
+    }
+
+    dragIdx = -1;
+    dropIdx = -1;
+  }, { passive: true });
+
+  // ── 취소 (터치 벗어남) ──
+  scrollEl.addEventListener('touchcancel', function() {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+    clearInterval(autoScrollTimer);
+
+    if (isDragging) {
+      isDragging = false;
+      clearDropIndicators();
+      const btns = getNavBtns();
+      btns.forEach(function(b) { b.classList.remove('nav-dragging'); });
+      if (ghostEl) { ghostEl.remove(); ghostEl = null; }
+      scrollEl.style.overflow = '';
+    }
+  }, { passive: true });
+
+  function clearDropIndicators() {
+    const btns = getNavBtns();
+    btns.forEach(function(b) {
+      b.classList.remove('nav-drop-before');
+      b.classList.remove('nav-drop-after');
+    });
+  }
+}
+
+/* ── 드래그로 종목 순서 이동 (Phase 3-B-reorder) ── */
+function moveExerciseByDrag(fromIdx, toIdx) {
+  if (!_currentSession || !_currentSession.exercises) return;
+
+  const exercises = _currentSession.exercises;
+  if (fromIdx < 0 || fromIdx >= exercises.length) return;
+
+  // 배열에서 추출
+  const moved = exercises.splice(fromIdx, 1)[0];
+
+  // toIdx 보정 (fromIdx 제거 후 인덱스 변동)
+  let insertAt = toIdx;
+  if (toIdx > fromIdx) insertAt--;
+  if (insertAt < 0) insertAt = 0;
+  if (insertAt > exercises.length) insertAt = exercises.length;
+
+  // 삽입
+  exercises.splice(insertAt, 0, moved);
+
+  // sortOrder 재할당
+  exercises.forEach(function(ex, i) { ex.sortOrder = i; });
+
+  // 유산소 타이머 키 재매핑
+  if (typeof _cardioTimers !== 'undefined' && _cardioTimers) {
+    const newTimers = {};
+    exercises.forEach(function(ex, i) {
+      // 기존 타이머 인덱스 맵핑
+      Object.keys(_cardioTimers).forEach(function(key) {
+        const oldIdx = parseInt(key, 10);
+        let newIdx = oldIdx;
+        if (oldIdx === fromIdx) {
+          newIdx = insertAt;
+        } else if (fromIdx < insertAt && oldIdx > fromIdx && oldIdx <= insertAt) {
+          newIdx = oldIdx - 1;
+        } else if (fromIdx > insertAt && oldIdx >= insertAt && oldIdx < fromIdx) {
+          newIdx = oldIdx + 1;
+        }
+        if (newIdx === i) newTimers[i] = _cardioTimers[key];
+      });
+    });
+    Object.keys(_cardioTimers).forEach(function(k) { delete _cardioTimers[k]; });
+    Object.keys(newTimers).forEach(function(k) { _cardioTimers[k] = newTimers[k]; });
+  }
+
+  // 현재 보고 있던 종목 인덱스 보정
+  if (_currentExerciseIndex === fromIdx) {
+    _currentExerciseIndex = insertAt;
+  } else if (fromIdx < _currentExerciseIndex && insertAt >= _currentExerciseIndex) {
+    _currentExerciseIndex--;
+  } else if (fromIdx > _currentExerciseIndex && insertAt <= _currentExerciseIndex) {
+    _currentExerciseIndex++;
+  }
+
+  // 재렌더링
+  renderExerciseCards();
+  autoSaveSession();
+}
+
+// ══ 운동 중 종목 순서 변경 ══
+function moveExercise(fromIdx, toIdx) {
+  if (!_currentSession) return;
+  if (fromIdx < 0 || fromIdx >= _currentSession.exercises.length) return;
+  if (toIdx < 0 || toIdx >= _currentSession.exercises.length) return;
+
+  // 배열에서 꺼내서 새 위치에 삽입
+  var item = _currentSession.exercises.splice(fromIdx, 1)[0];
+  _currentSession.exercises.splice(toIdx, 0, item);
+
+  // 유산소 타이머 인덱스도 재매핑
+  var newTimers = {};
+  var oldKeys = Object.keys(_cardioTimers);
+  for (var i = 0; i < oldKeys.length; i++) {
+    var oldIdx = parseInt(oldKeys[i]);
+    var newIdx = oldIdx;
+    if (oldIdx === fromIdx) {
+      newIdx = toIdx;
+    } else if (fromIdx < toIdx && oldIdx > fromIdx && oldIdx <= toIdx) {
+      newIdx = oldIdx - 1;
+    } else if (fromIdx > toIdx && oldIdx >= toIdx && oldIdx < fromIdx) {
+      newIdx = oldIdx + 1;
+    }
+    newTimers[newIdx] = _cardioTimers[oldKeys[i]];
+  }
+  _cardioTimers = newTimers;
+
+  // 현재 보고 있는 종목 인덱스 업데이트
+  _currentExerciseIndex = toIdx;
+
+  // sortOrder 재정렬
+  for (var i = 0; i < _currentSession.exercises.length; i++) {
+    _currentSession.exercises[i].sortOrder = i;
+  }
+
+  autoSaveSession();
+  renderExerciseCards();
 }
 
 function bindPartTabLongPress() {
