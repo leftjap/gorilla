@@ -1273,8 +1273,17 @@ input {
 /* ── 통계/기록 화면 ── */
 .stats-screen-content {
   background: var(--bg-gray);
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.stats-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: calc(40px + max(0px, env(safe-area-inset-bottom)));
 }
 
@@ -3224,6 +3233,14 @@ input {
 
 .start-workout:active {
   transform: scale(0.98);
+}
+
+#bottomBtn {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  left: 20px;
+  right: 20px;
+  z-index: 100;
 }
 
 /* ── 스크린 (기존 구조) ── */

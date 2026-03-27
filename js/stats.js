@@ -10,13 +10,18 @@ function renderStatsScreen() {
 
   var html = '';
 
+  // 고정 영역 (스크롤 안 됨)
   html += renderStatsHeader();
   html += renderStatsSummary();
+
+  // 스크롤 영역
+  html += '<div class="stats-scroll-area">';
   html += renderStatsMonthCal();
   html += '<div id="statsWorkoutCard" class="stats-workout-card"></div>';
   html += renderStatsHeroRanking();
   html += renderStatsMonthlyChart();
   html += '<div style="height:40px"></div>';
+  html += '</div>';
 
   container.innerHTML = html;
 
