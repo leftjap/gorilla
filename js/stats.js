@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ stats.js — 통계/기록 화면 ═══ */
 
 var _statsYM = getYM();           // 통계 화면에서 보고 있는 월

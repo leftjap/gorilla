@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ sync.js — GAS 서버 동기화 ═══ */
 
 var GAS_URL = 'https://script.google.com/macros/s/AKfycby9cBU92KAnTveGQWtALcbTmpExMKvSbtkvyC6vdWZttt8kEIEmxaTuTHan474rbzA3/exec';

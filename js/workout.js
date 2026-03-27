@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ workout.js — 운동 진행 화면 ═══ */
 
 var _currentSession = null;

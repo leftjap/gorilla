@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ swipe-back.js — iOS 스타일 스와이프 뒤로가기 ═══ */
 
 (function() {

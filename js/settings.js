@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ settings.js — 설정 화면, 종목 관리 ═══ */
 
 var _settingsSelectedPart = 'chest'; // 설정 화면에서 선택된 부위

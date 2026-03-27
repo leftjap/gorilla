@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ app.js — 초기화, 진입점 ═══ */
 
 function hideLoadingScreen() {

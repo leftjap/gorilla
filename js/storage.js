@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ storage.js — 상수, 유틸, 종목 마스터 ═══ */
 
 // ── LocalStorage 키 ──

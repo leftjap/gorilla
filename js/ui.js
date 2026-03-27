@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ ui.js — 메인 화면, 캘린더, 화면 전환 ═══ */
 
 var _currentYM = getYM(); // 현재 선택된 월

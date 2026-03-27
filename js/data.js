@@ -1,3 +1,5 @@
+// ═══ PROJECT: gym ═══
+
 /* ═══ data.js — 세션/PR/인바디 CRUD, 통계 ═══ */
 
 // ══ 세션 CRUD ══
