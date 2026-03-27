@@ -1946,11 +1946,6 @@ function completeSet(exIdx, setIdx) {
     }
   }
 
-  // 휴식 타이머 시작
-  if (meta && meta.defaultRestSec > 0) {
-    startRestTimer(meta.defaultRestSec);
-  }
-
   // 자동저장
   autoSaveSession();
   updateHeaderVolume();
