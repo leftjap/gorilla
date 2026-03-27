@@ -1066,9 +1066,11 @@ function renderExerciseCard(exIdx) {
             '<span class="cardio-manual-label">또는 직접 입력</span>' +
             '<div class="cardio-input">' +
               '<input type="number" class="cardio-min-input" id="cardioMin-' + exIdx + '" ' +
-                'value="" placeholder="' + (lastCardioMin > 0 ? lastCardioMin : '분') + '" inputmode="numeric">' +
+                'value="" placeholder="' + (lastCardioMin > 0 ? lastCardioMin : '분') + '" inputmode="numeric" ' +
+                'oninput="var b=document.getElementById(\'cardioCheckBtn-' + exIdx + '\');if(b){b.className=this.value?\'set-check-btn done\':\'set-check-btn\'}" ' +
+                'onkeydown="if(event.key===\'Enter\'){event.preventDefault();completeCardio(' + exIdx + ')}">' +
               '<span class="cardio-label">분</span>' +
-              '<button class="set-check-btn" onclick="completeCardio(' + exIdx + ')">✓</button>' +
+              '<button class="set-check-btn" id="cardioCheckBtn-' + exIdx + '" onclick="completeCardio(' + exIdx + ')">✓</button>' +
             '</div>' +
           '</div>';
     }
@@ -2124,6 +2126,9 @@ function completeSet(exIdx, setIdx) {
   var meta = getExercise(exData.exerciseId);
   var isBodyweight = meta && (meta.equipment === 'bodyweight' || meta.equipment === 'cardio');
 
+  // 매달리기 종목(체중 100% 부하): 풀업만 해당
+  var isHangingBW = meta && meta.equipment === 'bodyweight' && (meta.id === 'pullup');
+
   // 입력값 읽기
   var wInput = document.getElementById('setW-' + exIdx + '-' + setIdx);
   var rInput = document.getElementById('setR-' + exIdx + '-' + setIdx);
@@ -2138,8 +2143,8 @@ function completeSet(exIdx, setIdx) {
   if (setData.done) {
     setData.done = false;
     setData.isPR = false;
-    // 맨몸 종목: weight를 0으로 복원 (재완료 시 체중 재적용)
-    if (isBodyweight) {
+    // 매달리기 맨몸 종목: weight를 0으로 복원 (재완료 시 체중 재적용)
+    if (isHangingBW) {
       setData.weight = 0;
     }
     autoSaveSession();
@@ -2154,9 +2159,12 @@ function completeSet(exIdx, setIdx) {
     return;
   }
 
-  // 맨몸 종목: weight를 체중으로 설정하여 볼륨에 반영
-  if (isBodyweight) {
+  // 매달리기 맨몸 종목(풀업): 체중을 weight로 설정 → 볼륨 반영
+  // 기타 맨몸(싯업, 벤치딥스 등): weight=0 유지 → 볼륨 0, 횟수만 추적
+  if (isHangingBW) {
     w = getLatestWeight();
+  } else if (isBodyweight) {
+    w = 0;
   }
   setData.weight = w;
   setData.reps = r;
