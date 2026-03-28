@@ -1351,6 +1351,70 @@ function bindExHeaderLongPress() {
       var startX = 0;
       var startY = 0;
 
+      function showExHeaderSheet() {
+        var exData = _currentSession.exercises[exIdx];
+        var meta = getExercise(exData.exerciseId);
+        var name = meta ? meta.name : '';
+
+        var doneCount = 0;
+        for (var k = 0; k < exData.sets.length; k++) {
+          if (exData.sets[k].done) doneCount++;
+        }
+
+        var buttons = [];
+
+        if (doneCount > 0) {
+          buttons.push({
+            text: '종목 완료',
+            onClick: function() {
+              showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
+                if (confirmed) {
+                  completeExercise(exIdx);
+                }
+              });
+            }
+          });
+        }
+
+        if (_currentSession.exercises.length > 1) {
+          var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
+          buttons.push({
+            text: deleteText,
+            cls: 'destructive',
+            onClick: function() {
+              showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
+                if (confirmed) {
+                  removeExerciseFromSession(exIdx);
+                }
+              });
+            }
+          });
+        } else {
+          var cancelText = doneCount > 0 ? '종목 삭제 · 운동 취소 (' + doneCount + '세트 기록 삭제)' : '종목 삭제 · 운동 취소';
+          buttons.push({
+            text: cancelText,
+            cls: 'destructive',
+            onClick: function() {
+              var confirmMsg = doneCount > 0
+                ? doneCount + '세트 기록이 삭제됩니다. 운동을 취소하시겠습니까?'
+                : '운동을 취소하시겠습니까?';
+              showConfirm(confirmMsg, function(confirmed) {
+                if (confirmed) {
+                  cancelWorkout();
+                }
+              });
+            }
+          });
+        }
+
+        if (buttons.length === 0) {
+          showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
+          return;
+        }
+
+        showActionSheet(name, buttons);
+      }
+
       header.addEventListener('touchstart', function(e) {
         triggered = false;
         var touch = e.touches[0];
@@ -1363,52 +1427,7 @@ function bindExHeaderLongPress() {
           timer = null;
           header.classList.remove('long-pressing');
           if (navigator.vibrate) navigator.vibrate(30);
-
-          var exData = _currentSession.exercises[exIdx];
-          var meta = getExercise(exData.exerciseId);
-          var name = meta ? meta.name : '';
-
-          var doneCount = 0;
-          for (var k = 0; k < exData.sets.length; k++) {
-            if (exData.sets[k].done) doneCount++;
-          }
-
-          var buttons = [];
-
-          if (doneCount > 0) {
-            buttons.push({
-              text: '종목 완료',
-              onClick: function() {
-                showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    completeExercise(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (_currentSession.exercises.length > 1) {
-            var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
-            buttons.push({
-              text: deleteText,
-              cls: 'destructive',
-              onClick: function() {
-                showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    removeExerciseFromSession(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (buttons.length === 0) {
-            showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
-            return;
-          }
-
-          showActionSheet(name, buttons);
+          showExHeaderSheet();
         }, 500);
       }, { passive: true });
 
@@ -1452,52 +1471,7 @@ function bindExHeaderLongPress() {
           triggered = true;
           timer = null;
           header.classList.remove('long-pressing');
-
-          var exData = _currentSession.exercises[exIdx];
-          var meta = getExercise(exData.exerciseId);
-          var name = meta ? meta.name : '';
-
-          var doneCount = 0;
-          for (var k = 0; k < exData.sets.length; k++) {
-            if (exData.sets[k].done) doneCount++;
-          }
-
-          var buttons = [];
-
-          if (doneCount > 0) {
-            buttons.push({
-              text: '종목 완료',
-              onClick: function() {
-                showConfirm(name + ' 종목을 완료하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    completeExercise(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (_currentSession.exercises.length > 1) {
-            var deleteText = doneCount > 0 ? '종목 삭제 (' + doneCount + '세트 기록 포함)' : '종목 삭제';
-            buttons.push({
-              text: deleteText,
-              cls: 'destructive',
-              onClick: function() {
-                showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
-                  if (confirmed) {
-                    removeExerciseFromSession(exIdx);
-                  }
-                });
-              }
-            });
-          }
-
-          if (buttons.length === 0) {
-            showConfirm('완료된 세트가 없습니다.\n세트를 먼저 완료해주세요.', function() {});
-            return;
-          }
-
-          showActionSheet(name, buttons);
+          showExHeaderSheet();
         }, 500);
       });
 
@@ -1713,6 +1687,22 @@ function bindNavLongPress() {
           showConfirm(name + ' 종목을 삭제하시겠습니까?', function(confirmed) {
             if (confirmed) {
               removeExerciseFromSession(exIdx);
+            }
+          });
+        }
+      });
+    } else {
+      var cancelText = doneCount > 0 ? '종목 삭제 · 운동 취소 (' + doneCount + '세트 기록 삭제)' : '종목 삭제 · 운동 취소';
+      buttons.push({
+        text: cancelText,
+        cls: 'destructive',
+        onClick: function() {
+          var confirmMsg = doneCount > 0
+            ? doneCount + '세트 기록이 삭제됩니다. 운동을 취소하시겠습니까?'
+            : '운동을 취소하시겠습니까?';
+          showConfirm(confirmMsg, function(confirmed) {
+            if (confirmed) {
+              cancelWorkout();
             }
           });
         }
