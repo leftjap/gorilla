@@ -15,6 +15,13 @@ function syncToServer(callback, silent) {
     return;
   }
 
+  // 빈 LS 보호: 서버 복원 전 업로드 차단
+  if (window._blockSyncToServer) {
+    console.log('syncToServer: 빈 LS 보호 — 서버 복원 전 업로드 차단');
+    if (callback) callback(false);
+    return;
+  }
+
   if (!navigator.onLine) {
     if (!silent) showSyncToast('offline');
     if (callback) callback(false);

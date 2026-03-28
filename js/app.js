@@ -16,6 +16,11 @@ function init() {
   if (navigator.storage && navigator.storage.persist) {
     navigator.storage.persist().catch(function() {});
   }
+  // 빈 LS 보호: 세션 데이터 없으면 서버 복원 완료까지 save 차단
+  var _lsEmpty = !(L(K.sessions) && (L(K.sessions)).length > 0);
+  if (_lsEmpty) {
+    window._blockSyncToServer = true;
+  }
   // 데이터 마이그레이션 (부위/종목 ID 변환, 1회만 실행)
   migrateData();
 
@@ -37,6 +42,8 @@ function init() {
 
   // 서버 동기화 — silent 모드
   syncFromServer(function(success) {
+    // 빈 LS 보호 해제: 서버 데이터 수신 완료
+    window._blockSyncToServer = false;
     if (success) {
       renderHome();
     }
