@@ -142,22 +142,27 @@ input {
   overflow: hidden;
 }
 .wh-time {
+  flex: 1;
   font-size: 15px;
   font-weight: 700;
   color: var(--dark);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: right;
 }
 .wh-sep {
-  margin: 0 6px;
+  flex: 0 0 auto;
+  margin: 0 8px;
   color: var(--gray);
   font-size: 14px;
 }
 .wh-vol {
+  flex: 1;
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  text-align: left;
 }
 .wh-vol .vol-current {
   color: var(--accent);
